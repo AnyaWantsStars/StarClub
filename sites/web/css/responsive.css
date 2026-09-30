@@ -1,0 +1,407 @@
+/* ==================== 响应式设计 ==================== */
+
+/* 平板设备 */
+@media (max-width: 992px) {
+    .hero-title {
+        font-size: 40px;
+    }
+
+    .hero-subtitle {
+        font-size: 24px;
+    }
+
+    .about-content {
+        grid-template-columns: 1fr;
+    }
+
+    .mission-values {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 移动设备 */
+@media (max-width: 768px) {
+    /* 导航栏 */
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: var(--bg-white);
+        flex-direction: column;
+        padding: 20px;
+        gap: 10px;
+        box-shadow: var(--shadow);
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+    }
+
+    .nav-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    /* 首页横幅 */
+    .hero {
+        min-height: 500px;
+        margin-top: 70px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .hero-subtitle {
+        font-size: 20px;
+    }
+
+    .hero-desc {
+        font-size: 16px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 10px 24px;
+        font-size: 14px;
+    }
+
+    /* 区块 */
+    .section {
+        padding: 60px 0;
+    }
+
+    .section-title {
+        font-size: 28px;
+        margin-bottom: 40px;
+    }
+
+    /* 星社简介 */
+    .intro-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .intro-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stat-number {
+        font-size: 36px;
+    }
+
+    /* 最新动态 */
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 核心共创 */
+    .activities-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .activity-card {
+        padding: 30px 20px;
+    }
+
+    .activity-icon {
+        font-size: 40px;
+    }
+
+    /* 快速入口 */
+    .quick-links {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-link-icon {
+        font-size: 40px;
+    }
+
+    /* 页脚 */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    /* 其他页面 */
+    .page-header {
+        padding: 100px 0 40px;
+    }
+
+    .page-title {
+        font-size: 32px;
+    }
+
+    .about-text h3 {
+        font-size: 20px;
+    }
+
+    .mission-values {
+        grid-template-columns: 1fr;
+    }
+
+    /* 指导老师 - 平板 */
+    .advisor-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 30px 20px;
+    }
+
+    .advisor-photo-wrapper {
+        width: 150px;
+        height: 150px;
+    }
+
+    .advisor-name {
+        font-size: 24px;
+    }
+
+    .advisor-info {
+        width: 100%;
+    }
+
+    .advisor-areas {
+        justify-content: center;
+    }
+
+    /* 时间线 */
+    .timeline::before {
+        left: 20px;
+    }
+
+    .timeline-item {
+        padding-left: 50px;
+        text-align: left !important;
+    }
+
+    .timeline-item::before {
+        left: 20px;
+    }
+
+    /* 资源网格 */
+    .resources-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .resource-card {
+        width: 100%;
+    }
+
+    /* 成员网格 */
+    .members-grid {
+        grid-template-columns: repeat(2, 260px);
+    }
+
+    /* 星社成就时间线 */
+    .achievements-timeline::before {
+        left: 20px;
+    }
+
+    .achievement-item {
+        flex-direction: column;
+    }
+
+    .achievement-date {
+        width: auto;
+        text-align: left;
+        padding-right: 0;
+        padding-left: 50px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .achievement-date-month-cn {
+        font-size: 16px;
+    }
+
+    .achievement-date-month-en {
+        font-size: 10px;
+    }
+
+    .achievement-date-year {
+        font-size: 16px;
+    }
+
+    .achievement-dot {
+        left: 11px;
+        top: 5px;
+        width: 16px;
+        height: 16px;
+        border-width: 3px;
+    }
+
+    .achievement-content {
+        margin-left: 50px;
+        padding: 18px 20px;
+    }
+
+    .achievement-content::before {
+        left: -8px;
+        top: 10px;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid var(--bg-white);
+    }
+
+    .achievement-title {
+        font-size: 17px;
+    }
+
+    .achievement-desc {
+        font-size: 14px;
+    }
+
+    /* 加入星社 */
+    .contact-card {
+        padding: 30px 20px;
+    }
+
+    /* 招募报名网格 */
+    .join-contact-grid {
+        gap: 16px;
+    }
+
+    .join-contact-grid .join-contact-card {
+        width: 200px;
+    }
+
+    .join-contact-card {
+        padding: 20px 16px;
+    }
+
+    .join-contact-icon {
+        font-size: 28px;
+    }
+
+    /* 联系表单 */
+    .contact-info,
+    .contact-form {
+        padding: 30px 20px;
+    }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+    .logo img {
+        height: 36px;
+        width: auto;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-subtitle {
+        font-size: 18px;
+    }
+
+    .hero-desc {
+        font-size: 14px;
+    }
+
+    .section {
+        padding: 40px 0;
+    }
+
+    .section-title {
+        font-size: 24px;
+        margin-bottom: 30px;
+    }
+
+    .intro-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-number {
+        font-size: 32px;
+    }
+
+    .activities-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-links {
+        grid-template-columns: 1fr;
+    }
+
+    .news-card,
+    .activity-card,
+    .resource-card,
+    .member-card {
+        padding: 25px 20px;
+    }
+
+    /* 成员网格 - 小屏单列 */
+    .members-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-title {
+        font-size: 28px;
+    }
+
+    .contact-item-value {
+        font-size: 16px;
+    }
+
+    /* 招募报名网格 - 小屏 */
+    .join-contact-grid {
+        gap: 12px;
+    }
+
+    .join-contact-grid .join-contact-card {
+        width: 160px;
+    }
+
+    /* 招募状态提示横幅 */
+    .join-notice-banner {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1400px;
+    }
+
+    .hero-title {
+        font-size: 56px;
+    }
+
+    .hero-subtitle {
+        font-size: 32px;
+    }
+}

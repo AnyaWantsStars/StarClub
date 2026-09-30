@@ -1,0 +1,18 @@
+{
+  "port": 10241,
+  "secret_key": "",
+  "oauth": {
+    "enabled": false,
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "https://service.starclub.example.com/oauth/callback",
+    "authorize_url": "https://id.starclub.example.com/apps/oauth2/authorize",
+    "token_url": "https://id.starclub.example.com/apps/oauth2/api/v1/token",
+    "userinfo_url": "https://id.starclub.example.com/ocs/v2.php/cloud/user?format=json"
+  },
+  "jwt": {
+    "secret_key": "",
+    "algorithm": "HS256",
+    "expiration_hours": 24
+  }
+}

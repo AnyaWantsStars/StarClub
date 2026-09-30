@@ -1,0 +1,18 @@
+[Unit]
+Description=StarClub website administration
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=/home/starclub/StarClub/sites/web-admin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/starclub/StarClub/sites/web-admin/admin.py 10240
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

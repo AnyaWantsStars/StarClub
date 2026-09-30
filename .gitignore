@@ -1,0 +1,48 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+venv/
+.venv/
+
+# ---- 运行时数据 / 密钥（请勿提交） ----
+.env
+.env.*
+config.json
+.secret_key
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+sites/service/data/
+sites/attendance/data/
+sites/web-admin/data/allowed_users.json
+sites/web-admin/data/operation-log.json
+
+# ---- 日志 / 缓存 / 临时 ----
+logs/
+*.log
+nginx/logs/
+.cache/
+*.tmp
+.tmp/
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# ---- 备份文件 ----
+*.bak
+*.orig
+*.old
+backup/
+backup_*
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}设置真实姓名 - StarClub | 星社出勤{% endblock %}
+{% block body %}
+<div style="min-height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #005a8c 0%, #00a4f8 100%);">
+    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); max-width: 420px; width: 90%;">
+        <img src="/static/starclub.png" alt="Logo" style="width: 64px; height: 64px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
+        <h1 style="font-size: 20px; color: #005a8c; margin-bottom: 8px; text-align: center;">欢迎使用星社出勤</h1>
+        <p style="color: #5f6368; margin-bottom: 24px; text-align: center; font-size: 14px;">
+            首次登录，请填写您的真实姓名
+        </p>
+        {% if error %}
+        <div style="background: #fce8e6; color: #c5221f; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px;">
+            {{ error }}
+        </div>
+        {% endif %}
+        <form method="POST">
+            <label style="display: block; font-size: 13px; color: #5f6368; margin-bottom: 6px;">账号</label>
+            <input type="text" value="{{ user_id }}" disabled
+                   style="width: 100%; padding: 10px 12px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; background: #f1f3f4; color: #5f6368; margin-bottom: 16px; box-sizing: border-box;">
+            <label style="display: block; font-size: 13px; color: #5f6368; margin-bottom: 6px;">真实姓名 <span style="color: #c5221f;">*</span></label>
+            <input type="text" name="real_name" placeholder="请输入您的真实姓名" required autofocus
+                   style="width: 100%; padding: 10px 12px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; margin-bottom: 20px; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
+                   onfocus="this.style.borderColor='#005a8c'"
+                   onblur="this.style.borderColor='#dadce0'">
+            <button type="submit"
+                    style="width: 100%; padding: 12px; font-size: 15px; background: #005a8c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                确认并进入出勤
+            </button>
+        </form>
+        <p style="margin-top: 16px; font-size: 12px; color: #5f6368; text-align: center;">
+            姓名将用于出勤记录和排名展示，请如实填写
+        </p>
+    </div>
+</div>
+{% endblock %}

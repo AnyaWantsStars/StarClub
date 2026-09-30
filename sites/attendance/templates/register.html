@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}登记 - StarClub | 星社出勤{% endblock %}
+{% block body %}
+<div style="min-height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #005a8c 0%, #00a4f8 100%);">
+    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center; max-width: 400px; width: 90%;">
+        <img src="/static/starclub.png" alt="Logo" style="width: 80px; height: 80px; margin-bottom: 20px;">
+        <h1 style="font-size: 24px; color: #005a8c; margin-bottom: 10px;">完善用户信息</h1>
+        <p style="color: #5f6368; margin-bottom: 30px;">请输入您的真实姓名完成登记</p>
+
+        <div class="form-group" style="text-align: left;">
+            <label>编号</label>
+            <input type="text" id="userId" value="{{ oauth_id }}" readonly style="background: #f8f9fa;">
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+            <label>姓名 <span style="color: red;">*</span></label>
+            <input type="text" id="username" placeholder="请输入您的真实姓名" value="{{ display_name }}">
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="submitRegister()" style="padding: 12px 40px;">
+                完成登记
+            </button>
+        </div>
+
+        <a href="/logout" style="display: block; margin-top: 15px; color: #5f6368; text-decoration: none;">
+            取消
+        </a>
+    </div>
+</div>
+
+<script>
+async function submitRegister() {
+    const username = document.getElementById('username').value.trim();
+    if (!username) {
+        showToast('请输入姓名', 'error');
+        return;
+    }
+
+    const hasNumber = /\d/.test(username);
+    const hasEnglish = /[a-zA-Z]/.test(username);
+    const hasSpecial = /[~!@#$%^&*()_+=\[\]{};':"\\|,.<>\/?]/.test(username);
+
+    if (hasNumber || hasEnglish || hasSpecial) {
+        showToast('姓名不能包含数字、英文或特殊符号', 'error');
+        return;
+    }
+
+    const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+        showToast('登记成功', 'success');
+        window.location.href = '/attendance';
+    } else {
+        showToast(data.message || '登记失败', 'error');
+    }
+}
+</script>
+{% endblock %}

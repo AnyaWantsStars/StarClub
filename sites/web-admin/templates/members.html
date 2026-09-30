@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成员风采 - {{ data.hero.title if data.hero else '星社' }}</title>
+    <link rel="icon" href="static/starclub.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="static/starclub-title.png" alt="StarClub Logo">
+                </a>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="about.html">关于我们</a></li>
+                    <li><a href="activities.html">星社动态</a></li>
+                    <li><a href="resources.html">学习资源</a></li>
+                    <li><a href="members.html" class="active">成员风采</a></li>
+                    <li><a href="join.html">加入星社</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 页面头部 -->
+        <section class="page-header">
+            <div class="container">
+                <h1 class="page-title">成员风采</h1>
+                <p class="page-subtitle">认识星社的优秀成员</p>
+            </div>
+        </section>
+
+        <!-- 核心成员 -->
+        <section class="content-section section-white">
+            <div class="container">
+                <h2 class="section-title">核心成员</h2>
+                <div class="members-grid" id="membersGrid">
+                    {% if visible_members %}
+                    {% for member in visible_members %}
+                    {% set photo = member.photo or '' %}
+                    {% set is_image = (photo.endswith('.jpg') or photo.endswith('.jpeg') or photo.endswith('.png') or photo.endswith('.gif') or photo.endswith('.webp') or photo.endswith('.svg') or photo.startswith('http')) %}
+                    {% if member.link %}
+                    <a href="{{ member.link }}" target="_blank" class="member-card member-card-link">
+                    {% else %}
+                    <div class="member-card">
+                    {% endif %}
+                        <div class="member-avatar">
+                            {% if is_image %}
+                            <img src="{{ photo|fix_uploads }}" alt="{{ member.name or '' }}" class="avatar-img" onerror="this.parentElement.innerHTML='👤'">
+                            {% elif photo %}
+                            {{ photo }}
+                            {% else %}
+                            👤
+                            {% endif %}
+                        </div>
+                        <h3 class="member-name">{{ member.name }}</h3>
+                        {% if member.grade %}
+                        <p class="member-grade">{{ member.grade }}</p>
+                        {% endif %}
+                        {% if member.field %}
+                        <p class="member-field">{{ member.field }}</p>
+                        {% endif %}
+                        <p class="member-bio">{{ member.bio if member.bio else '' }}</p>
+                        {% if member.link %}
+                        <span class="member-link-hint">点击访问 →</span>
+                        {% endif %}
+                    </{% if member.link %}a{% else %}div{% endif %}>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- 星社成就 -->
+        <section class="content-section section-gray">
+            <div class="container">
+                <h2 class="section-title">星社成就</h2>
+                <div class="achievements-timeline" id="achievementsTimeline">
+                    {% if sorted_achievements %}
+                    {% set month_names_cn = ['', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'] %}
+                    {% set month_names_en = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] %}
+                    {% for achievement in sorted_achievements %}
+                    {% set date_str = achievement.date or '' %}
+                    {% set year = '' %}
+                    {% set month = '' %}
+                    {% if '年' in date_str %}
+                        {% set parts = date_str.split('年') %}
+                        {% set year = parts[0] if parts else '' %}
+                        {% set month_part = parts[1] if parts|length > 1 else '' %}
+                        {% if '月' in month_part %}
+                            {% set month = month_part.split('月')[0] %}
+                        {% endif %}
+                    {% elif '-' in date_str %}
+                        {% set parts = date_str.split('-') %}
+                        {% set year = parts[0] if parts else '' %}
+                        {% set month = parts[1] if parts|length > 1 else '' %}
+                    {% endif %}
+                    <div class="achievement-item">
+                        <div class="achievement-date">
+                            <div class="achievement-date-month-cn">{{ month_names_cn[month|int] if month else '' }}</div>
+                            <div class="achievement-date-month-en">{{ month_names_en[month|int] if month else '' }}</div>
+                            <div class="achievement-date-year">{{ year }}</div>
+                        </div>
+                        <div class="achievement-dot"></div>
+                        <div class="achievement-content">
+                            <h3 class="achievement-title">{{ achievement.title }}</h3>
+                            <p class="achievement-desc">{{ achievement.desc }}</p>
+                            {% if achievement.link %}
+                            <a href="{{ achievement.link }}" class="achievement-link" target="_blank">查看详情</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>{{ data.footer.column1Title if data.footer and data.footer.column1Title else '关于星社' }}</h4>
+                    <ul class="footer-links" id="footerCol1Links">
+                        {% if data.footer and data.footer.column1Items %}
+                            {% for item in data.footer.column1Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_path }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="about.html">关于我们</a></li>
+                            <li><a href="contact.html">联系我们</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>{{ data.footer.column2Title if data.footer and data.footer.column2Title else '快速链接' }}</h4>
+                    <ul class="footer-links" id="footerCol2Links">
+                        {% if data.footer and data.footer.column2Items %}
+                            {% for item in data.footer.column2Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_path }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="activities.html">星社动态</a></li>
+                            <li><a href="resources.html">学习资源</a></li>
+                            <li><a href="members.html">成员风采</a></li>
+                            <li><a href="join.html">加入星社</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>{{ data.footer.column3Title if data.footer and data.footer.column3Title else '联系我们' }}</h4>
+                    <ul class="footer-links" id="footerCol3Links">
+                        {% if data.footer and data.footer.column3Items %}
+                            {% for item in data.footer.column3Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_path }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="contact.html">联系方式</a></li>
+                        {% endif %}
+                        {% if data.footer and data.footer.github %}
+                        <li><a href="{{ data.footer.github }}" class="footer-github" target="_blank">
+                            <svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;"><path fill="currentColor" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.52 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p id="footerCopyright">&copy; {{ data.footer.copyright if data.footer and data.footer.copyright else now.year }} 星社. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[Unit]
+Description=StarClub Nginx reverse proxy
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=forking
+PIDFile=/home/starclub/StarClub/nginx/logs/nginx.pid
+ExecStartPre=/home/starclub/StarClub/nginx/sbin/nginx -t -p /home/starclub/StarClub/nginx -c /home/starclub/StarClub/nginx/conf/nginx.conf
+ExecStart=/home/starclub/StarClub/nginx/sbin/nginx -p /home/starclub/StarClub/nginx -c /home/starclub/StarClub/nginx/conf/nginx.conf
+ExecReload=/home/starclub/StarClub/nginx/sbin/nginx -p /home/starclub/StarClub/nginx -c /home/starclub/StarClub/nginx/conf/nginx.conf -s reload
+ExecStop=/home/starclub/StarClub/nginx/sbin/nginx -p /home/starclub/StarClub/nginx -c /home/starclub/StarClub/nginx/conf/nginx.conf -s quit
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,848 @@
+{
+  "hero": {
+    "title": "星社智慧社团平台",
+    "subtitle": "探索智慧社团新范式 · 与创造者同行",
+    "desc": "智慧社团平台 | 星社共创空间",
+    "btn1Text": "加入星社",
+    "btn1Link": "join.html",
+    "btn2Text": "了解更多",
+    "btn2Link": "about.html"
+  },
+  "stats": {
+    "foundedYear": "2025",
+    "memberCount": "128+",
+    "activityCount": "36+",
+    "foundedYearLabel": "成立年份",
+    "memberCountLabel": "成员总数",
+    "activityCountLabel": "共创项目"
+  },
+  "activities": [
+    {
+      "date": "2026年09月20日",
+      "title": "第一届星社创意马拉松",
+      "desc": "36小时极限创作，八支队伍从零到一完成了八个完整原型，其中三个已被列入正式项目。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2026年07月15日",
+      "title": "夏季开放麦",
+      "desc": "不限主题、不限形式，每人5分钟分享自己最近在折腾的东西，笑声和掌声不断。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2026年05月10日",
+      "title": "春季项目路演",
+      "desc": "五个在孵项目集中亮相展示阶段性成果，现场收获了一大波反馈和新队友。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2026年03月08日",
+      "title": "春季项目招新",
+      "desc": "五个在孵项目集中亮相招募队友，现场组队氛围火爆，半小时内所有岗位被认领完毕。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2026年01月24日",
+      "title": "年度规划工作坊",
+      "desc": "用一整天的时间，全员共创今年的目标地图，每个组都立下了自己的flag。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2025年11月15日",
+      "title": "跨校交流日",
+      "desc": "邀请了三所高校的创新社团来做分享，互相串门、互相种草，当场达成了两个联合项目意向。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2025年09月06日",
+      "title": "秋日迎新派对",
+      "desc": "新学期迎来30多位新伙伴，用一场轻松的游戏夜代替枯燥的宣讲会。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2025年06月21日",
+      "title": "数字素养工作坊系列",
+      "desc": "连续四周、每周一场主题工作坊：AI绘图、数据爬虫、自动化脚本、信息可视化。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2025年04月12日",
+      "title": "灵感市集",
+      "desc": "每个人带上自己最近的一个灵感或半成品，像摆摊一样展示，其他人用贴纸投票和留言。",
+      "link": "",
+      "visible": true
+    },
+    {
+      "date": "2025年02月01日",
+      "title": "寒假线上共学营",
+      "desc": "假期不散伙，线上组队学习新技能，两周时间产出12份学习笔记和3个小项目。",
+      "link": "",
+      "visible": true
+    }
+  ],
+  "coreActivities": [
+    {
+      "icon": "🌌",
+      "title": "灵感夜话",
+      "desc": "放松聊聊，碰撞出奇怪又有趣的想法",
+      "link": ""
+    },
+    {
+      "icon": "🛠",
+      "title": "动手工坊",
+      "desc": "边做边学，用作品说话",
+      "link": ""
+    },
+    {
+      "icon": "🎪",
+      "title": "创意市集",
+      "desc": "把各组的成果摆出来互相看看",
+      "link": ""
+    },
+    {
+      "icon": "🌱",
+      "title": "成长计划",
+      "desc": "持续陪伴，一起把想法养大",
+      "link": ""
+    }
+  ],
+  "quickLinks": [
+    {
+      "icon": "🌐",
+      "title": "星社共创空间",
+      "desc": "灵感发生地",
+      "link": "https://space.starclub.example.com"
+    },
+    {
+      "icon": "🧰",
+      "title": "星社工具箱",
+      "desc": "常用工具一网打尽",
+      "link": "https://tools.starclub.example.com"
+    },
+    {
+      "icon": "📚",
+      "title": "星社学习中心",
+      "desc": "从入门到进阶的路线图",
+      "link": "https://docs.starclub.example.com"
+    },
+    {
+      "icon": "🎨",
+      "title": "星社素材库",
+      "desc": "模板素材随手取",
+      "link": "https://docs.starclub.example.com/assets"
+    }
+  ],
+  "about": {
+    "title": "关于我们",
+    "subtitle": "星社智慧社团平台，英文名 StarClub",
+    "content": "星社（StarClub）是一群想把想法做成东西的人。我们提供一片土壤，让大家一起开脑洞、一起动手。这里没有标准答案，只有试错和搭把手。在这里，你可以从零开始做一个项目，也可以带着半成品来找队友；可以一个人闷头钻研，也可以拉上三五个人围炉夜话。我们不看重资历，只看重你敢不敢把“要是……就好了”变成“我们来试试”。失败了没关系，拆掉重来就好。卡住了也没关系，群里喊一声，总有人接过你的代码、帮你改方案、陪你熬夜赶工。每一个被嘲笑过的点子，在这里都会被认真对待；每一次尝试，都会有人为你鼓掌。星社不相信孤胆英雄，我们相信一群人能走得更远。如果你也有一个想实现的想法，哪怕它还很粗糙，欢迎你来，我们一起把它做出来。",
+    "vision": "",
+    "values": [
+      {
+        "icon": "🌱",
+        "title": "先做出来",
+        "desc": "比起完美计划，我们更相信跑起来的第一版"
+      },
+      {
+        "icon": "🧭",
+        "title": "保持好奇",
+        "desc": "对工具、对世界、对彼此的奇思妙想"
+      },
+      {
+        "icon": "🤝",
+        "title": "彼此搭台",
+        "desc": "没有孤胆英雄，只有互相补位的伙伴"
+      }
+    ]
+  },
+  "advisor": {
+    "name": "远山",
+    "title": "指导老师",
+    "titleFull": "星社共创中心",
+    "photo": "",
+    "bio": "与成员一起探索数字化工具与共创方法，喜欢把复杂的东西讲简单。",
+    "link": "",
+    "researchAreas": [
+      "共创方法论",
+      "数字工具应用",
+      "数字平台建设"
+    ]
+  },
+  "constitution": {
+    "chapters": [
+      {
+        "title": "第一章 总 则",
+        "articles": [
+          {
+            "number": "第一条",
+            "content": "为规范星社的组织与行为，保障社团健康发展，繁荣数字创新文化，根据《星社自治公约》及相关规定，制定本章程。"
+          },
+          {
+            "number": "第二条",
+            "content": "本社团名称为星社（StarClub）。"
+          },
+          {
+            "number": "第三条",
+            "content": "本社团是由热爱数字创新的伙伴们自愿组成的智慧社团平台。"
+          },
+          {
+            "number": "第四条",
+            "content": "本社团宗旨为探索智慧社团建设新模式，提升成员数字化素养、创新思维与实践能力，营造开放、协作、创新的平台氛围。"
+          },
+          {
+            "number": "第五条",
+            "content": "本社团接受指导老师的监督管理和业务指导。"
+          }
+        ]
+      },
+      {
+        "title": "第二章 业务范围",
+        "articles": [
+          {
+            "number": "第六条",
+            "content": "本社团的业务范围包括：（一）组织智慧社团平台、数字化服务相关领域的分享、培训与交流；（二）发起平台设计赛、数字化创新实践项目等共创；（三）开展数字素养科普宣传；（四）组织成员参与相关创新实践；（五）完成指导老师委员会交办的其他相关工作。"
+          }
+        ]
+      },
+      {
+        "title": "第三章 会 员",
+        "articles": [
+          {
+            "number": "第七条",
+            "content": "凡认同本章程，对智慧社团建设、数字化创新有兴趣的伙伴，均可申请加入。"
+          },
+          {
+            "number": "第八条",
+            "content": "成员加入需按星社规定的程序办理手续，具体细则由《星社成员守则》规定。"
+          },
+          {
+            "number": "第九条",
+            "content": "成员享有下列权利：（一）参加本社团的各项共创；（二）获得本社团服务的优先权；（三）拥有星社内部事务的知情权与参与权；（四）对本社团工作的批评建议权和监督权；（五）加入自愿、退出自由。"
+          },
+          {
+            "number": "第十条",
+            "content": "成员履行下列义务：（一）遵守国家法律法规及本章程；（二）维护本社团的声誉和合法权益；（三）执行本社团的决议；（四）积极参与星社共创；（五）完成星社委托的任务。"
+          },
+          {
+            "number": "第十一条",
+            "content": "成员退出需要通知星社。成员如有严重违反本章程或社团纪律的行为，经管理组决议通过，予以劝退或移出。"
+          }
+        ]
+      },
+      {
+        "title": "第四章 组织机构和负责人",
+        "articles": [
+          {
+            "number": "第十二条",
+            "content": "本社团的最高议事机构是成员会议，其职权是：（一）制定和修改章程；（二）推选与调整管理组成员；（三）审议管理组的工作报告；（四）决定星社的工作方针、任务及终止事宜。"
+          },
+          {
+            "number": "第十三条",
+            "content": "管理组是成员会议的常设执行机构，在会议闭会期间领导本社团开展日常工作，对成员会议负责。"
+          },
+          {
+            "number": "第十四条",
+            "content": "管理组推选产生社长一名、副社长若干名。星社社长须符合星社社长管理规范规定的任职条件。"
+          },
+          {
+            "number": "第十五条",
+            "content": "本社团社长行使下列职权：（一）召集和主持管理组；（二）检查成员会议、管理组决议的落实情况；（三）代表本社团签署有关重要文件。"
+          }
+        ]
+      },
+      {
+        "title": "第五章 资产管理、使用原则",
+        "articles": [
+          {
+            "number": "第十六条",
+            "content": "按照社团自治原则，本社团运营经费来自共创项目收益与社团基金，原则上不接受外部商业资助，不收取成员任何费用。"
+          },
+          {
+            "number": "第十七条",
+            "content": "本社团经费必须用于本章程规定的业务范围和事业的发展。任何单位、个人不得侵占、私分和挪用。"
+          }
+        ]
+      },
+      {
+        "title": "第六章 附 则",
+        "articles": [
+          {
+            "number": "第十八条",
+            "content": "对本社团章程的修改，须经管理组决议通过后报成员会议审议。"
+          },
+          {
+            "number": "第十九条",
+            "content": "本章程自星社成立之日起生效，解释权归星社管理组。"
+          }
+        ]
+      }
+    ]
+  },
+  "organizationIntro": "星社采用管理组统筹、项目组共创的组织机制，下设运营、策划、研究、竞赛、技术、品牌等方向团队，各组围绕共创项目灵活协作，持续推动平台与伙伴共同成长。",
+  "organization": [
+    {
+      "name": "管理组",
+      "description": "星社最高决策机构，负责顶层设计、方向把控与组织治理，确保星社长期健康发展",
+      "visible": true,
+      "icon": "⭐",
+      "positions": [
+        "社长 1名",
+        "副社长 3名"
+      ]
+    },
+    {
+      "name": "运营组",
+      "description": "负责日常事务管理、资源调度与跨组协调，保障组织高效运转",
+      "visible": true,
+      "icon": "⚙️",
+      "positions": [
+        "组长 1名",
+        "副组长 2名"
+      ]
+    },
+    {
+      "name": "策划组",
+      "description": "负责大型活动与项目的整体策划、策略制定与执行规划，确保项目有序落地",
+      "visible": true,
+      "icon": "🚀",
+      "positions": [
+        "组长 1名",
+        "副组长 2名"
+      ]
+    },
+    {
+      "name": "创新研究组",
+      "description": "负责社团运营模式创新、前沿课题研究与创意方案孵化，探索未来发展新方向",
+      "visible": true,
+      "icon": "🔬",
+      "positions": [
+        "组长 1名",
+        "副组长 2名"
+      ]
+    },
+    {
+      "name": "创意竞赛组",
+      "description": "负责竞赛类项目的策划、组织与执行，推动创新实践在比赛中落地",
+      "visible": true,
+      "icon": "🏆",
+      "positions": [
+        "组长 1名"
+      ]
+    },
+    {
+      "name": "智能技术组",
+      "description": "负责智能应用开发、数据分析与自动化流程设计，为平台提供技术支撑",
+      "visible": true,
+      "icon": "💻",
+      "positions": [
+        "组长 1名",
+        "副组长 2名"
+      ]
+    },
+    {
+      "name": "品牌传播组",
+      "description": "负责星社品牌形象建设、宣传推广与成果展示，提升组织影响力",
+      "visible": true,
+      "icon": "📢",
+      "positions": [
+        "组长 1名"
+      ]
+    },
+    {
+      "name": "外联合作组",
+      "description": "负责对外合作洽谈、校企联络与社群拓展，搭建星社与外部资源的连接桥梁",
+      "visible": true,
+      "icon": "🤝",
+      "positions": [
+        "组长 1名"
+      ]
+    }
+  ],
+  "members": [
+    {
+      "name": "逐风",
+      "grade": "2023年加入",
+      "field": "系统开发",
+      "bio": "负责星社平台技术培训体系的建设与维护。",
+      "link": "",
+      "photo": "uploads/avatars/lazyking.jpg",
+      "visible": true
+    },
+    {
+      "name": "拾尘",
+      "grade": "2024年加入",
+      "field": "平台运营",
+      "bio": "负责星社平台内容运营与用户服务，热爱数字化产品设计。",
+      "link": "",
+      "photo": "uploads/avatars/biabiaboy.jpg",
+      "visible": true
+    },
+    {
+      "name": "北辰",
+      "grade": "2024年加入",
+      "field": "数据治理",
+      "bio": "专注数据治理与隐私保护，活跃于各类数字化创新实践。",
+      "link": "",
+      "photo": "uploads/avatars/bittermonarch.jpg",
+      "visible": true
+    },
+    {
+      "name": "珂珂",
+      "grade": "2024年加入",
+      "field": "数据分析",
+      "bio": "关注数据驱动决策在社团运营中的应用。",
+      "link": "",
+      "photo": "uploads/avatars/pinkbear.jpg",
+      "visible": true
+    },
+    {
+      "name": "墨羽",
+      "grade": "2024年加入",
+      "field": "前端开发",
+      "bio": "擅长 Web 前端开发与交互设计。",
+      "link": "",
+      "photo": "uploads/avatars/sadlass.jpg",
+      "visible": true
+    },
+    {
+      "name": "拾光",
+      "grade": "2025年加入",
+      "field": "数字内容",
+      "bio": "对智慧社团数字内容创作与传播有浓厚兴趣，乐于分享。",
+      "link": "",
+      "photo": "uploads/avatars/biubiugirl.jpg",
+      "visible": true
+    },
+    {
+      "name": "小桃",
+      "grade": "2025年加入",
+      "field": "应用开发",
+      "bio": "喜欢研究小程序与轻应用开发，推动星社数字化工具落地。",
+      "link": "",
+      "photo": "uploads/avatars/sweetbaby.jpg",
+      "visible": true
+    },
+    {
+      "name": "白泽",
+      "grade": "2025年加入",
+      "field": "竞赛运营",
+      "bio": "组织星社创新实践与共创活动，活跃于各类数字化创新实践。",
+      "link": "",
+      "photo": "uploads/avatars/redhat.jpg",
+      "visible": true
+    }
+  ],
+  "achievements": [
+    {
+      "date": "2026年09月",
+      "desc": "在全国大学生智慧创新大赛中斩获特等奖，平台设计与运营方案获得评审团高度认可。",
+      "link": "",
+      "title": "全国大学生智慧创新大赛特等奖",
+      "visible": true
+    },
+    {
+      "date": "2026年07月",
+      "desc": "星云杯全国总决赛中稳定发挥，凭借扎实的技术功底拿下二等奖。",
+      "link": "",
+      "title": "星云杯全国智慧平台挑战赛二等奖",
+      "visible": true
+    },
+    {
+      "date": "2026年05月",
+      "desc": "全国高校智慧应用创新赛上，团队开发的校园助手小程序获得最佳实用奖。",
+      "link": "",
+      "title": "全国高校智慧应用创新赛最佳实用奖",
+      "visible": true
+    },
+    {
+      "date": "2026年03月",
+      "desc": "参与中国国际大学生创新大赛，智慧社团治理方案入围全国百强。",
+      "link": "",
+      "title": "中国国际大学生创新大赛全国百强",
+      "visible": true
+    },
+    {
+      "date": "2026年01月",
+      "desc": "全国智慧社团平台创新竞赛中脱颖而出，团队协作与方案设计赢得二等奖。",
+      "link": "",
+      "title": "全国智慧社团平台创新竞赛二等奖",
+      "visible": true
+    },
+    {
+      "date": "2025年11月",
+      "desc": "首次参加数字中国创新大赛，智慧校园赛道作品获得赛区优秀奖。",
+      "link": "",
+      "title": "数字中国创新大赛智慧校园赛道赛区优秀奖",
+      "visible": true
+    },
+    {
+      "date": "2025年08月",
+      "desc": "暑期社会实践期间完成的乡村教育数字化方案，获评校级十佳项目。",
+      "link": "",
+      "title": "暑期社会实践省级十佳项目",
+      "visible": true
+    },
+    {
+      "date": "2025年05月",
+      "desc": "赛区内包揽前三名，将智慧社团创新玩出了独特风格。",
+      "link": "",
+      "title": "智慧社团创新竞赛赛区冠军",
+      "visible": true
+    }
+  ],
+  "resources": [
+    {
+      "icon": "💾",
+      "title": "星社文件库",
+      "desc": "成员共享的文件仓库",
+      "category": "星社资源",
+      "link": "https://cloud.starclub.example.com",
+      "visible": true
+    },
+    {
+      "icon": "📌",
+      "title": "星社服务中心",
+      "desc": "一站式服务入口",
+      "category": "星社资源",
+      "link": "https://service.starclub.example.com",
+      "visible": true
+    },
+    {
+      "icon": "🧭",
+      "title": "星社小助手",
+      "desc": "随时解答你的小问题",
+      "category": "星社资源",
+      "link": "https://assist.starclub.example.com",
+      "visible": true
+    },
+    {
+      "icon": "📅",
+      "title": "星社活动日历",
+      "desc": "星社活动日程一键订阅",
+      "category": "星社资源",
+      "link": "https://calendar.starclub.example.com",
+      "visible": true
+    },
+    {
+      "icon": "🚀",
+      "title": "智慧社团入门指南",
+      "desc": "零基础也能快速上手智慧社团",
+      "category": "入门指南",
+      "link": "https://docs.starclub.example.com/guide",
+      "visible": true
+    },
+    {
+      "icon": "🎓",
+      "title": "新成员入门手册",
+      "desc": "加入星社流程与社团生活速览",
+      "category": "入门指南",
+      "link": "https://docs.starclub.example.com/welcome",
+      "visible": true
+    },
+    {
+      "icon": "🪪",
+      "title": "星社账号与权限指南",
+      "desc": "账号开通、角色与权限说明",
+      "category": "入门指南",
+      "link": "https://docs.starclub.example.com/account",
+      "visible": true
+    },
+    {
+      "icon": "📜",
+      "title": "数字素养基础",
+      "desc": "数字工具、信息检索与内容创作入门",
+      "category": "入门指南",
+      "link": "https://docs.starclub.example.com/digital",
+      "visible": true
+    },
+    {
+      "icon": "🧠",
+      "title": "智能应用入门",
+      "desc": "智能应用与自动化工具原理介绍",
+      "category": "基础技能",
+      "link": "https://docs.starclub.example.com/ai-basic",
+      "visible": true
+    },
+    {
+      "icon": "📊",
+      "title": "数据分析入门",
+      "desc": "数据清洗、统计分析与可视化详解",
+      "category": "基础技能",
+      "link": "https://docs.starclub.example.com/data",
+      "visible": true
+    },
+    {
+      "icon": "🔍",
+      "title": "信息检索与甄别",
+      "desc": "高效检索与信息可信度判断",
+      "category": "基础技能",
+      "link": "https://docs.starclub.example.com/search",
+      "visible": true
+    },
+    {
+      "icon": "🛡️",
+      "title": "网络素养与隐私保护",
+      "desc": "个人信息保护与网络礼仪",
+      "category": "基础技能",
+      "link": "https://docs.starclub.example.com/privacy",
+      "visible": true
+    },
+    {
+      "icon": "⚙️",
+      "title": "星社工具箱",
+      "desc": "常用数字化工具在线集合",
+      "category": "工具推荐",
+      "link": "https://tools.starclub.example.com",
+      "visible": true
+    },
+    {
+      "icon": "🛠️",
+      "title": "效率工具推荐",
+      "desc": "常用效率工具与协作平台使用指南",
+      "category": "工具推荐",
+      "link": "https://docs.starclub.example.com/tools",
+      "visible": true
+    },
+    {
+      "icon": "🖊️",
+      "title": "在线协作白板",
+      "desc": "团队头脑风暴与远程协作画板",
+      "category": "工具推荐",
+      "link": "https://docs.starclub.example.com/board",
+      "visible": true
+    },
+    {
+      "icon": "🗂️",
+      "title": "云文档模板库",
+      "desc": "社团常用文书与表格模板",
+      "category": "工具推荐",
+      "link": "https://docs.starclub.example.com/templates",
+      "visible": true
+    },
+    {
+      "icon": "🎯",
+      "title": "创新项目案例集",
+      "desc": "历年智慧创新实践项目案例与思路",
+      "category": "实践案例",
+      "link": "https://docs.starclub.example.com/cases",
+      "visible": true
+    },
+    {
+      "icon": "⚔️",
+      "title": "平台运营指南",
+      "desc": "社团平台运营与共创组织方法论",
+      "category": "实践案例",
+      "link": "https://docs.starclub.example.com/ops",
+      "visible": true
+    },
+    {
+      "icon": "🏆",
+      "title": "智慧服务大赛获奖案例",
+      "desc": "历届智慧服务大赛优秀案例复盘",
+      "category": "实践案例",
+      "link": "https://docs.starclub.example.com/awards",
+      "visible": true
+    },
+    {
+      "icon": "📈",
+      "title": "社团数字化运营实录",
+      "desc": "星社数字化建设过程记录",
+      "category": "实践案例",
+      "link": "https://docs.starclub.example.com/stories",
+      "visible": true
+    },
+    {
+      "icon": "📖",
+      "title": "星社书库",
+      "desc": "星社在线书库",
+      "category": "通用资源",
+      "link": "https://docs.starclub.example.com/books",
+      "visible": true
+    },
+    {
+      "icon": "🎨",
+      "title": "星社模板素材库",
+      "desc": "共创海报、推文与演示模板",
+      "category": "通用资源",
+      "link": "https://docs.starclub.example.com/assets",
+      "visible": true
+    },
+    {
+      "icon": "🎬",
+      "title": "星社公开课",
+      "desc": "星社技能系列公开课程",
+      "category": "通用资源",
+      "link": "https://docs.starclub.example.com/courses",
+      "visible": true
+    },
+    {
+      "icon": "🎒",
+      "title": "共创素材包",
+      "desc": "共创策划与执行的配套素材",
+      "category": "通用资源",
+      "link": "https://docs.starclub.example.com/kits",
+      "visible": true
+    },
+    {
+      "icon": "🤖",
+      "title": "大模型应用入门",
+      "desc": "大模型基础概念与日常应用",
+      "category": "前沿视野",
+      "link": "https://docs.starclub.example.com/llm",
+      "visible": true
+    },
+    {
+      "icon": "🎨",
+      "title": "AI 绘画与创意工具",
+      "desc": "AI 图像生成与设计实践",
+      "category": "前沿视野",
+      "link": "https://docs.starclub.example.com/ai-art",
+      "visible": true
+    },
+    {
+      "icon": "🔌",
+      "title": "智能硬件体验营",
+      "desc": "传感器与智能小项目实操",
+      "category": "前沿视野",
+      "link": "https://docs.starclub.example.com/iot-lab",
+      "visible": true
+    },
+    {
+      "icon": "🧩",
+      "title": "低代码应用开发",
+      "desc": "无需编程搭建实用小应用",
+      "category": "前沿视野",
+      "link": "https://docs.starclub.example.com/lowcode",
+      "visible": true
+    }
+  ],
+  "books": [
+    {
+      "title": "《智慧社团建设》",
+      "desc": "系统介绍智慧社团平台建设与应用"
+    },
+    {
+      "title": "《数字化思维》",
+      "desc": "数字化思维领域经典读物"
+    },
+    {
+      "title": "《图解数字工具》",
+      "desc": "通俗易懂的数字工具入门书籍"
+    },
+    {
+      "title": "《智慧社团运营手册》",
+      "desc": "社团组织、运营与数字化管理的实操指南"
+    },
+    {
+      "title": "《新成员的 100 天》",
+      "desc": "从加入星社到独当一面的成长手记"
+    },
+    {
+      "title": "《社团数字化实践》",
+      "desc": "社团场景下的数字化工具应用合集"
+    }
+  ],
+  "contact": {
+    "qqGroup": "official-channel",
+    "wechat": "StarClub",
+    "email": "contact@example.com",
+    "location": "线上星社",
+    "github": "https://github.com/AnyaWantsStars/StarClub"
+  },
+  "join": {
+    "qqGroup": "official-channel",
+    "status": "pending",
+    "notice": "2026年星社开放招募即将开始！我们欢迎所有对智慧社团建设、数字化创新感兴趣的伙伴加入！无论你是零基础的新手，还是已有一定经验的高手，都能在这里找到属于自己的位置！详情关注官方招募渠道",
+    "requirements": [
+      "对智慧社团建设或数字化创新有浓厚兴趣",
+      "愿意投入时间和精力参与星社共创",
+      "具备基本的计算机操作能力",
+      "遵守星社章程，积极配合星社工作",
+      "有团队协作精神，乐于分享交流"
+    ],
+    "benefits": [
+      "系统化的智慧社团平台学习机会",
+      "参与各类创新实践的培训和指导",
+      "与优秀前辈交流学习的机会",
+      "丰富的共创实践与实战经验",
+      "结识志同道合的伙伴",
+      "提升个人能力和履历的机会"
+    ],
+    "time": "2026年开放招募",
+    "location": "暂未确定",
+    "link": "https://docs.example.com/join",
+    "faq": [
+      {
+        "question": "零基础可以加入吗？",
+        "answer": "当然可以！我们有系统的培训体系，从数字化基础到创新实践，循序渐进。很多优秀成员都是从零开始学习的呢"
+      },
+      {
+        "question": "加入星社需要缴纳费用吗？",
+        "answer": "不需要。星社是开放自治的智慧社团，不收取任何费用。"
+      },
+      {
+        "question": "星社平时有什么共创安排？",
+        "answer": "我们定期组织学习交流会、技术培训、创意挑战赛、创新实践等共创沙龙，并有指导老师支持开展各类开放共创与交流活动。"
+      },
+      {
+        "question": "如何报名参加招募？",
+        "answer": "大家注意关注招募期间的官方招募渠道信息，之后会发布招募信息，填写在线报名表，通过申请与筛选即可加入。"
+      },
+      {
+        "question": "星社对专业有要求吗？",
+        "answer": "没有专业限制。只要你对智慧社团建设或数字化创新感兴趣，我们都欢迎！来自不同背景的伙伴都很适合呢。"
+      }
+    ]
+  },
+  "footer": {
+    "copyright": "2025-2026",
+    "icp": "",
+    "github": "https://github.com/AnyaWantsStars/StarClub",
+    "column1Title": "快速链接",
+    "column1Items": [
+      {
+        "text": "星社共创空间",
+        "link": "https://space.starclub.example.com"
+      },
+      {
+        "text": "星社数字工坊",
+        "link": "https://lab.starclub.example.com"
+      },
+      {
+        "text": "星社灵感广场",
+        "link": "https://community.starclub.example.com"
+      }
+    ],
+    "column2Title": "关于星社",
+    "column2Items": [
+      {
+        "text": "星社介绍",
+        "link": "about.html"
+      },
+      {
+        "text": "加入星社",
+        "link": "join.html"
+      },
+      {
+        "text": "共创回顾",
+        "link": "activities.html"
+      }
+    ],
+    "column3Title": "联系我们",
+    "column3Items": [
+      {
+        "text": "联系方式",
+        "link": "contact.html"
+      }
+    ]
+  },
+  "detailPages": []
+}

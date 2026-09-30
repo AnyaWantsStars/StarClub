@@ -1,0 +1,34 @@
+name: Deploy StarClub website
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sites/web/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: starclub-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish static site to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./sites/web
+          publish_branch: gh-pages
+          force_orphan: false
+          enable_jekyll: false
+          commit_message: "Deploy StarClub website ${{ github.sha }}"

@@ -1,0 +1,2388 @@
+{% extends "base.html" %}
+{% block title %}管理后台 - StarClub | 星社出勤{% endblock %}
+{% block body %}
+<div class="main-container">
+<div class="header">
+    <div class="header-inner">
+        <div class="header-left">
+            <img src="/static/starclub-white.png" alt="Logo" style="width: 40px; height: 40px;">
+            <span class="header-title">StarClub | 星社出勤</span>
+        </div>
+        <div class="header-right">
+            <span id="currentUsername"></span>
+            <button class="header-btn" onclick="location.href='/attendance'">返回</button>
+            <button class="header-btn" onclick="logout()">退出</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('records', this)">出勤记录</div>
+        <div class="tab" onclick="switchTab('publications', this)">出勤公示</div>
+        <div class="tab" onclick="switchTab('reports', this)">举报处理</div>
+        <div class="tab" onclick="switchTab('appeals', this)">申诉处理</div>
+        <div class="tab" onclick="switchTab('users', this)">用户管理</div>
+        <div class="tab" onclick="switchTab('settings', this)">系统设置</div>
+    </div>
+
+    <div id="tab-records" class="tab-content active">
+        <div class="card">
+            <div class="card-title">出勤记录管理</div>
+            <div class="filter-bar">
+                <input type="text" id="filterUserId" placeholder="编号">
+                <input type="date" id="filterStartDate">
+                <input type="date" id="filterEndDate">
+                <button class="btn btn-primary" onclick="loadRecords()">筛选</button>
+                <button class="btn btn-secondary" onclick="exportRecords()">导出</button>
+            </div>
+            <div id="recordsTable"></div>
+        </div>
+    </div>
+
+    <div id="tab-publications" class="tab-content">
+        <div class="card">
+            <div class="card-title">出勤公示管理</div>
+            <div style="margin-bottom: 15px;">
+                <button class="btn-lg btn-lg-primary" onclick="showCreatePublication()">新建公示</button>
+            </div>
+            <div id="publicationsTable"></div>
+        </div>
+    </div>
+
+    <div id="tab-reports" class="tab-content">
+        <div class="card">
+            <div class="card-title">举报处理</div>
+            <div id="reportsTable"></div>
+        </div>
+    </div>
+
+    <div id="tab-appeals" class="tab-content">
+        <div class="card">
+            <div class="card-title">申诉处理</div>
+            <div id="appealsTable"></div>
+        </div>
+    </div>
+
+    <div id="tab-users" class="tab-content">
+        <div class="card">
+            <div class="card-title">用户管理</div>
+            <div class="filter-bar">
+                <button class="btn-lg btn-lg-primary" onclick="showAddUser()">添加用户</button>
+                <button class="btn btn-secondary" onclick="downloadUserTemplate()">下载模板</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('userFileInput').click()">批量导入</button>
+                <input type="file" id="userFileInput" accept=".csv" style="display: none;" onchange="importUsers(this)">
+                <button class="btn btn-secondary" onclick="exportUsers()">导出用户</button>
+            </div>
+            <div id="usersTable"></div>
+        </div>
+    </div>
+
+    <div id="tab-settings" class="tab-content">
+        <div class="card">
+            <div class="card-title">系统设置</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>出勤开始时间</label>
+                    <input type="time" id="settingStartTime" value="06:00">
+                </div>
+                <div class="form-group">
+                    <label>出勤结束时间</label>
+                    <input type="time" id="settingEndTime" value="23:30">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>操作间隔（秒）</label>
+                <input type="number" id="settingInterval" min="1" value="15">
+            </div>
+            <div class="form-group">
+                <label>登录有效期</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="settingSessionDays" min="0" value="30" style="width: 80px;"> <span style="color: var(--text-light);">天</span>
+                    <input type="number" id="settingSessionHours" min="0" max="23" value="0" style="width: 80px;"> <span style="color: var(--text-light);">时</span>
+                    <input type="number" id="settingSessionMinutes" min="0" max="59" value="0" style="width: 80px;"> <span style="color: var(--text-light);">分</span>
+                </div>
+                <small style="color: var(--text-light); font-size: 12px;">登录后保持会话的有效时间，可设置0天仅按小时和分钟计</small>
+            </div>
+            <div class="form-group">
+                <label>签退提醒</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="settingReminderMinutes" min="0" value="30" style="width: 100px;"> <span style="color: var(--text-light);">分钟前提醒（0=不提醒）</span>
+                </div>
+                <small style="color: var(--text-light); font-size: 12px;">出勤结束前多久提醒一次签退，设为0则不提醒</small>
+            </div>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+            <div class="form-group" style="margin-top: 15px;">
+                <label>允许出勤 IP 段（在线签到/签退/举报）</label>
+                <input type="text" id="settingAllowedIpRanges" placeholder="192.168.0.x,192.168.1.x" style="width: 100%;">
+                <small style="color: var(--text-light); font-size: 12px;">多个 IP 段用逗号分隔，支持 CIDR 格式和 x 通配符，如：192.168.0.0/24,192.168.1.x</small>
+            </div>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+            <div class="form-group" style="margin-top: 15px;">
+                <label>参与排行用户 <button class="btn btn-secondary" style="margin-left: 10px; padding: 4px 12px; font-size: 12px;" onclick="showRankingUserSelect()">选择用户</button></label>
+                <div id="rankingUserSummary" style="margin-top: 5px; padding: 8px 12px; background: var(--bg-gray); border-radius: 4px; font-size: 13px; color: var(--text-light);">
+                    全部用户参与（管理员和锁定/禁用用户自动排除）
+                </div>
+            </div>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+            <div class="form-group">
+                <label style="display: flex; align-items: center;">
+                    <input type="checkbox" id="settingEmailEnabled" style="width: auto; margin-right: 10px;">
+                    启用邮件功能
+                </label>
+            </div>
+            <div class="form-group">
+                <label>邮件发送时间范围</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="time" id="settingEmailTimeStart" value="06:00" style="width: 140px;">
+                    <span>至</span>
+                    <input type="time" id="settingEmailTimeEnd" value="23:59" style="width: 140px;">
+                    <span style="font-size: 12px; color: #5f6368; margin-left: 8px;">（测试邮件不受此限制）</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>管理员邮箱</label>
+                <input type="email" id="settingAdminEmail" placeholder="管理员邮箱">
+            </div>
+            <div class="form-group">
+                <label>发件人地址</label>
+                <input type="email" id="settingSenderAddress" placeholder="发件人地址">
+            </div>
+            <div class="form-group">
+                <label>发件人名称</label>
+                <input type="text" id="settingSenderName" placeholder="发件人名称">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP用户名</label>
+                    <input type="text" id="settingSmtpUsername" placeholder="SMTP用户名">
+                </div>
+                <div class="form-group">
+                    <label>SMTP密码</label>
+                    <input type="password" id="settingSmtpPassword" placeholder="SMTP密码">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP主机</label>
+                    <input type="text" id="settingSmtpHost" placeholder="smtp.example.com">
+                </div>
+                <div class="form-group">
+                    <label>SMTP端口</label>
+                    <input type="number" id="settingSmtpPort" min="1" max="65535" value="465">
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <button class="btn-lg btn-lg-primary" onclick="saveSettings()">保存设置</button>
+                <button class="btn-lg btn-lg-secondary" style="margin-left: 15px;" onclick="testEmail()">测试邮件</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="footer">
+    <div class="footer-inner">
+        <p>&copy; 2025-<span id="currentYear"></span> 星社. All rights reserved.</p>
+    </div>
+</div>
+
+<div id="modalOverlay" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle"></h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer" id="modalFooter"></div>
+    </div>
+</div>
+
+<script>
+let currentTab = 'records';
+let allRecords = [];
+let allPublications = [];
+let allReports = [];
+let allAppeals = [];
+let allUsers = [];
+
+function renderPagination(data, renderFn, panelId) {
+    const pageSize = 10;
+    let currentPage = 1;
+    const totalPages = Math.ceil(data.length / pageSize);
+
+    function goToPage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        document.getElementById(panelId).innerHTML = renderFn(data, page, pageSize);
+        // 绑定分页事件
+        const btns = document.querySelectorAll(`[data-page]`);
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => goToPage(parseInt(btn.dataset.page)));
+        });
+        const pageInput = document.getElementById('pageInput');
+        if (pageInput) {
+            pageInput.addEventListener('change', () => goToPage(parseInt(pageInput.value)));
+        }
+    }
+
+    goToPage(1);
+    return { goToPage, getCurrentPage: () => currentPage, getTotalPages: () => totalPages };
+}
+
+async function loadCurrentUser() {
+    const res = await apiRequest('/api/current_user');
+    if (res.success) {
+        document.getElementById('currentUsername').textContent = res.user.username;
+    }
+}
+
+function switchTab(tab, tabEl) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tabEl.classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    currentTab = tab;
+
+    if (tab === 'records') loadRecords();
+    else if (tab === 'publications') loadPublications();
+    else if (tab === 'reports') loadReports();
+    else if (tab === 'appeals') loadAppeals();
+    else if (tab === 'users') loadUsers();
+    else if (tab === 'settings') loadSettings();
+}
+
+async function loadRecords() {
+    const userId = document.getElementById('filterUserId').value.trim();
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+
+    let url = '/api/management/records?';
+    if (userId) url += `user_id=${encodeURIComponent(userId)}&`;
+    if (startDate) url += `start_date=${startDate}&`;
+    if (endDate) url += `end_date=${endDate}&`;
+
+    const res = await apiRequest(url);
+    const panel = document.getElementById('recordsTable');
+
+    if (res.success && res.records.length > 0) {
+        allRecords = res.records;
+        const pageSize = 10;
+        const totalPages = Math.ceil(allRecords.length / pageSize);
+
+        function renderRecordsPage(records, page, size) {
+            const start = (page - 1) * size;
+            const end = start + size;
+            const pageRecords = records.slice(start, end);
+
+            let html = `<button class="btn-lg btn-lg-primary" style="margin-bottom: 15px;" onclick="showAddRecord()">添加记录</button>
+                        <button class="btn btn-secondary" style="margin-bottom: 15px; margin-left: 10px;" onclick="downloadRecordTemplate()">下载模板</button>
+                        <button class="btn btn-secondary" style="margin-bottom: 15px; margin-left: 10px;" onclick="document.getElementById('recordFileInput').click()">批量导入</button>
+                        <input type="file" id="recordFileInput" accept=".csv" style="display: none;" onchange="importRecords(this)">
+                        <table><thead><tr><th>编号</th><th>姓名</th><th>日期</th><th>签到时间</th><th>签退时间</th><th>时长</th><th>状态</th><th>操作</th></tr></thead><tbody>`;
+            pageRecords.forEach(r => {
+                html += `<tr>
+                    <td>${escapeHtml(r.user_id)}</td>
+                    <td>${escapeHtml(r.username)}</td>
+                    <td>${r.check_in.substring(0, 10)}</td>
+                    <td>${r.check_in.substring(11, 19)}</td>
+                    <td>${r.check_out ? r.check_out.substring(11, 19) : '-'}</td>
+                    <td>${formatDuration(r.duration_minutes)}</td>
+                    <td class="status-${r.status}">${r.status === 'valid' ? '有效' : '无效'}</td>
+                    <td>
+                        <button class="btn btn-tiny btn-edit" onclick="editRecord('${r.record_id}')">编辑</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+
+            if (totalPages > 1) {
+                html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <span>共${records.length}条，第${page}/${totalPages}页</span>
+                    <button class="btn btn-tiny" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                    <input type="number" id="pageInput" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;">
+                    <button class="btn btn-tiny" data-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+                </div>`;
+            }
+            return html;
+        }
+
+        panel.innerHTML = renderRecordsPage(allRecords, 1, pageSize);
+
+        // 使用事件委托处理分页和输入跳转
+        panel.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-page]');
+            if (btn) {
+                const page = parseInt(btn.dataset.page);
+                panel.innerHTML = renderRecordsPage(allRecords, page, pageSize);
+            }
+        });
+        panel.addEventListener('change', function(e) {
+            if (e.target.id === 'pageInput') {
+                const p = parseInt(e.target.value);
+                if (p >= 1 && p <= totalPages) {
+                    panel.innerHTML = renderRecordsPage(allRecords, p, pageSize);
+                }
+            }
+        });
+    } else {
+        panel.innerHTML = '<div class="empty-state">暂无记录 <button class="btn-lg btn-lg-primary" style="margin-left: 10px;" onclick="showAddRecord()">添加记录</button></div>';
+    }
+}
+
+function showAddRecord() {
+    const bodyContent = `
+        <div class="form-group">
+            <label>编号 <span style="color: red;">*</span></label>
+            <input type="text" id="recordUserId" placeholder="请输入编号">
+        </div>
+        <div class="form-group">
+            <label>签到时间 <span style="color: red;">*</span></label>
+            <input type="datetime-local" id="recordCheckIn">
+        </div>
+        <div class="form-group">
+            <label>签退时间</label>
+            <input type="datetime-local" id="recordCheckOut">
+        </div>
+    `;
+    openModal(
+        '添加记录',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitAddRecord()">添加</button>`,
+        null, false
+    );
+}
+
+async function submitAddRecord() {
+    const userId = document.getElementById('recordUserId').value.trim();
+    const checkIn = document.getElementById('recordCheckIn').value;
+    const checkOut = document.getElementById('recordCheckOut').value;
+
+    if (!userId || !checkIn) {
+        showToast('请填写必填项', 'error');
+        return;
+    }
+
+    const res = await apiRequest('/api/management/record', {
+        method: 'POST',
+        body: JSON.stringify({
+            user_id: userId,
+            check_in: checkIn,
+            check_out: checkOut || null
+        })
+    });
+
+    if (res.success) {
+        showToast('添加成功', 'success');
+        closeModal();
+        loadRecords();
+    }
+}
+
+async function editRecord(recordId) {
+    const record = allRecords.find(r => r.record_id === recordId);
+    if (!record) return;
+
+    const bodyContent = `
+        <div class="form-group">
+            <label>编号</label>
+            <input type="text" value="${escapeHtml(record.user_id)}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" value="${escapeHtml(record.username)}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>签到时间</label>
+            <input type="datetime-local" id="editCheckIn" value="${record.check_in.substring(0, 16)}">
+        </div>
+        <div class="form-group">
+            <label>签退时间</label>
+            <input type="datetime-local" id="editCheckOut" value="${record.check_out ? record.check_out.substring(0, 16) : ''}">
+        </div>
+        <div class="form-group">
+            <label>状态</label>
+            <select id="editStatus">
+                <option value="valid" ${record.status === 'valid' ? 'selected' : ''}>有效</option>
+                <option value="invalid" ${record.status === 'invalid' ? 'selected' : ''}>无效</option>
+            </select>
+        </div>
+    `;
+    openModal(
+        '编辑记录',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitEditRecord('${recordId}')">保存</button>`,
+        null, false
+    );
+}
+
+async function submitEditRecord(recordId) {
+    const checkIn = document.getElementById('editCheckIn').value;
+    const checkOut = document.getElementById('editCheckOut').value;
+    const status = document.getElementById('editStatus').value;
+
+    const res = await apiRequest(`/api/management/record/${recordId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            check_in: checkIn,
+            check_out: checkOut || null,
+            status: status
+        })
+    });
+
+    if (res.success) {
+        showToast('保存成功', 'success');
+        closeModal();
+        loadRecords();
+    }
+}
+
+let previewRecords = [];
+let previewPage = 1;
+const PREVIEW_PAGE_SIZE = 10;
+
+function parseCSV(text) {
+    // 正确解析 CSV：处理引号包裹的字段（含逗号/换行）和 BOM
+    text = text.replace(/^\ufeff/, '');
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuotes) {
+            if (ch === '"') {
+                if (text[i + 1] === '"') {
+                    field += '"';
+                    i++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                field += ch;
+            }
+        } else {
+            if (ch === '"') {
+                inQuotes = true;
+            } else if (ch === ',') {
+                row.push(field.trim());
+                field = '';
+            } else if (ch === '\n' || ch === '\r') {
+                if (ch === '\r' && text[i + 1] === '\n') i++;
+                row.push(field.trim());
+                if (row.length > 0 && row.some(f => f !== '')) {
+                    rows.push(row);
+                }
+                row = [];
+                field = '';
+            } else {
+                field += ch;
+            }
+        }
+    }
+    // 最后一行
+    row.push(field.trim());
+    if (row.length > 0 && row.some(f => f !== '')) {
+        rows.push(row);
+    }
+    return rows;
+}
+
+async function importRecords(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = '';
+
+    const text = await file.text();
+    const records = parseCSV(text);
+    if (records.length === 0) { showToast('CSV 文件为空或格式错误', 'error'); return; }
+
+    // 第一条是 header，检查必要列
+    const headers = records[0];
+    const userIdIdx = headers.indexOf('user_id');
+    const usernameIdx = headers.indexOf('username') >= 0 ? headers.indexOf('username') : headers.indexOf('姓名');
+    const checkInIdx = headers.indexOf('check_in');
+    const checkOutIdx = headers.indexOf('check_out');
+    const statusIdx = headers.indexOf('status');
+
+    if (userIdIdx < 0 || checkInIdx < 0) {
+        showToast('CSV 缺少必要列(user_id, check_in)', 'error'); return;
+    }
+
+    previewRecords = [];
+    let skipCount = 0;
+    for (let i = 1; i < records.length; i++) {
+        const cols = records[i];
+        const userId = cols[userIdIdx];
+        const checkIn = cols[checkInIdx];
+        if (!userId || !checkIn) { skipCount++; continue; }
+        previewRecords.push({
+            user_id: userId,
+            username: usernameIdx >= 0 ? (cols[usernameIdx] || '') : '',
+            check_in: checkIn,
+            check_out: checkOutIdx >= 0 ? (cols[checkOutIdx] || '') : '',
+            status: statusIdx >= 0 ? (cols[statusIdx] || 'valid') : 'valid'
+        });
+    }
+    previewPage = 1;
+
+    if (previewRecords.length === 0) { showToast('没有可导入的有效记录', 'error'); return; }
+
+    let body = `<div id="previewSummary" style="margin-bottom:8px;font-size:13px;">共 <strong>${previewRecords.length}</strong> 条记录`;
+    if (skipCount > 0) body += `，<span style="color:#e67e22;">跳过 ${skipCount} 条格式不完整</span>`;
+    body += `</div><div id="previewTableWrap"></div>`;
+
+    const footer = `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="btnDoImport" onclick="doBatchImport()">确认导入</button>`;
+
+    openModal('批量导入预览', body, footer, null, false);
+    renderPreviewPage();
+}
+
+function renderPreviewPage() {
+    const totalPages = Math.ceil(previewRecords.length / PREVIEW_PAGE_SIZE);
+    const start = (previewPage - 1) * PREVIEW_PAGE_SIZE;
+    const pageRecords = previewRecords.slice(start, start + PREVIEW_PAGE_SIZE);
+
+    let html = `<table style="width:100%;font-size:13px;"><thead><tr>
+        <th style="width:11%;">编号</th><th style="width:10%;">姓名</th><th style="width:24%;">签到时间</th><th style="width:24%;">签退时间</th><th style="width:10%;">状态</th><th style="width:21%;">操作</th>
+    </tr></thead><tbody>`;
+
+    pageRecords.forEach((r, i) => {
+        const idx = start + i;
+        const statusLabel = r.status === 'invalid' || r.status === '无效' ? '无效' : '有效';
+        const statusClass = r.status === 'invalid' || r.status === '无效' ? 'status-invalid' : 'status-valid';
+        html += `<tr id="previewRow${idx}">
+            <td>${escapeHtml(r.user_id)}</td>
+            <td>${escapeHtml(r.username || '-')}</td>
+            <td>${escapeHtml(r.check_in)}</td>
+            <td>${escapeHtml(r.check_out || '-')}</td>
+            <td class="${statusClass}">${statusLabel}</td>
+            <td>
+                <button class="btn btn-tiny btn-edit" onclick="editPreviewRow(${idx})">编辑</button>
+                <button class="btn btn-tiny btn-danger" onclick="deletePreviewRow(${idx})" style="margin-left:4px;">删除</button>
+            </td>
+        </tr>`;
+    });
+
+    html += '</tbody></table>';
+
+    // 分页控件
+    if (totalPages > 1) {
+        html += `<div style="display:flex;justify-content:center;align-items:center;gap:10px;margin-top:12px;font-size:13px;">
+            <button class="btn btn-tiny" ${previewPage <= 1 ? 'disabled' : ''} onclick="goPreviewPage(${previewPage - 1})">上一页</button>
+            <span style="color:var(--text-light);">第</span>
+            <input type="number" id="previewPageInput" value="${previewPage}" min="1" max="${totalPages}" style="width:48px;text-align:center;padding:3px 5px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;" onchange="goPreviewPage(parseInt(this.value))">
+            <span style="color:var(--text-light);">/ ${totalPages} 页</span>
+            <button class="btn btn-tiny" ${previewPage >= totalPages ? 'disabled' : ''} onclick="goPreviewPage(${previewPage + 1})">下一页</button>
+        </div>`;
+    }
+
+    document.getElementById('previewTableWrap').innerHTML = html;
+}
+
+function goPreviewPage(page) {
+    const totalPages = Math.ceil(previewRecords.length / PREVIEW_PAGE_SIZE);
+    if (isNaN(page) || page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    previewPage = page;
+    renderPreviewPage();
+}
+
+function editPreviewRow(idx) {
+    const r = previewRecords[idx];
+    const row = document.getElementById('previewRow' + idx);
+    row.innerHTML = `<td><input type="text" value="${escapeHtml(r.user_id)}" id="editUserId${idx}" style="width:90%;padding:3px;border:1px solid var(--border-color);border-radius:3px;font-size:12px;"></td>
+        <td><input type="text" value="${escapeHtml(r.username || '')}" id="editUsername${idx}" style="width:90%;padding:3px;border:1px solid var(--border-color);border-radius:3px;font-size:12px;" placeholder="姓名"></td>
+        <td><input type="text" value="${escapeHtml(r.check_in)}" id="editCheckIn${idx}" style="width:90%;padding:3px;border:1px solid var(--border-color);border-radius:3px;font-size:12px;"></td>
+        <td><input type="text" value="${escapeHtml(r.check_out || '')}" id="editCheckOut${idx}" style="width:90%;padding:3px;border:1px solid var(--border-color);border-radius:3px;font-size:12px;" placeholder="留空表示无"></td>
+        <td><select id="editStatus${idx}" style="width:90%;padding:3px;border:1px solid var(--border-color);border-radius:3px;font-size:12px;">
+            <option value="valid" ${r.status === 'valid' || r.status === '有效' ? 'selected' : ''}>有效</option>
+            <option value="invalid" ${r.status === 'invalid' || r.status === '无效' ? 'selected' : ''}>无效</option>
+        </select></td>
+        <td>
+            <button class="btn btn-tiny btn-primary" onclick="savePreviewRow(${idx})">保存</button>
+            <button class="btn btn-tiny btn-secondary" onclick="renderPreviewPage()" style="margin-left:4px;">取消</button>
+        </td>`;
+}
+
+function savePreviewRow(idx) {
+    const userId = document.getElementById('editUserId' + idx).value.trim();
+    const username = document.getElementById('editUsername' + idx).value.trim();
+    const checkIn = document.getElementById('editCheckIn' + idx).value.trim();
+    const checkOut = document.getElementById('editCheckOut' + idx).value.trim();
+    const status = document.getElementById('editStatus' + idx).value;
+
+    if (!userId || !checkIn) { showToast('编号和签到时间不能为空', 'error'); return; }
+
+    previewRecords[idx] = { user_id: userId, username, check_in: checkIn, check_out: checkOut, status: status };
+    renderPreviewPage();
+}
+
+function deletePreviewRow(idx) {
+    if (!confirm('确定删除这条记录？')) return;
+    previewRecords.splice(idx, 1);
+    if (previewRecords.length === 0) {
+        closeModal();
+        showToast('所有记录已删除', 'info');
+        return;
+    }
+    const totalPages = Math.ceil(previewRecords.length / PREVIEW_PAGE_SIZE);
+    if (previewPage > totalPages) previewPage = totalPages;
+    renderPreviewPage();
+}
+
+async function doBatchImport() {
+    if (previewRecords.length === 0) { showToast('没有可导入的记录', 'error'); return; }
+    const btn = document.getElementById('btnDoImport');
+    btn.disabled = true;
+    btn.textContent = '导入中...';
+
+    const res = await apiRequest('/api/management/records/batch_create', {
+        method: 'POST',
+        body: JSON.stringify({ records: previewRecords })
+    });
+    if (res.success) {
+        showToast(res.message, 'success');
+        closeModal();
+        loadRecords();
+    } else {
+        showToast(res.message || '导入失败', 'error');
+        btn.disabled = false;
+        btn.textContent = '确认导入';
+    }
+}
+
+function exportRecords() {
+    const userId = document.getElementById('filterUserId').value.trim();
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+
+    let url = '/api/management/records/export?';
+    if (userId) url += `user_id=${encodeURIComponent(userId)}&`;
+    if (startDate) url += `start_date=${startDate}&`;
+    if (endDate) url += `end_date=${endDate}&`;
+
+    window.location.href = url;
+}
+
+async function loadPublications() {
+    const res = await apiRequest('/api/management/publications');
+    const panel = document.getElementById('publicationsTable');
+
+    if (res.success && res.publications.length > 0) {
+        allPublications = res.publications;
+        const pageSize = 10;
+        const totalPages = Math.ceil(allPublications.length / pageSize);
+
+        function renderPage(page) {
+            const start = (page - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = allPublications.slice(start, end);
+
+            let html = '<table><thead><tr><th>名称</th><th>开始日期</th><th>结束日期</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+            pageData.forEach(p => {
+                html += `<tr>
+                    <td>${escapeHtml(p.name)}</td>
+                    <td>${p.start_date}</td>
+                    <td>${p.end_date}</td>
+                    <td>${p.is_active ? '显示' : '隐藏'}</td>
+                    <td>
+                        <button class="btn btn-tiny btn-secondary" onclick="previewPublication('${p.pub_id}')">预览</button>
+                        <button class="btn btn-tiny btn-edit" onclick="editPublication('${p.pub_id}')">编辑</button>
+                        <button class="btn btn-tiny btn-delete" onclick="deletePublication('${p.pub_id}')">删除</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+
+            if (totalPages > 1) {
+                html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <span>共${allPublications.length}条，第${page}/${totalPages}页</span>
+                    <button class="btn btn-tiny" onclick="loadPublicationsPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                    <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="loadPublicationsPage(parseInt(this.value))">
+                    <button class="btn btn-tiny" onclick="loadPublicationsPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+                </div>`;
+            }
+            return html;
+        }
+
+        panel.innerHTML = renderPage(1);
+        window.loadPublicationsPage = (page) => {
+            panel.innerHTML = renderPage(page);
+        };
+    } else {
+        panel.innerHTML = '<div class="empty-state">暂无公示</div>';
+    }
+}
+
+async function showCreatePublication() {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    // 获取所有用户，管理默认不参与公示
+    const usersRes = await apiRequest('/api/management/users');
+    const allUsers = usersRes.users || [];
+    window._pubAllUsers = allUsers;
+    window._pubUserPage = 1;
+    // 跟踪选中状态：默认继承系统设置的排行用户
+    window._pubChecked = {};
+    const rankingUsers = window.rankingIncludeUsers || [];
+    if (rankingUsers.length > 0) {
+        // 有显式排行设置 → 默认勾选排行用户
+        allUsers.forEach(u => {
+            window._pubChecked[u.user_id] = rankingUsers.includes(u.user_id);
+        });
+    } else {
+        // 默认模式 → 所有非管理员、非锁定/禁用用户
+        allUsers.forEach(u => {
+            const isAdmin = u.user_type === 'admin' || u.user_type === 'super_admin';
+            const isExcluded = u.status === 'locked' || u.status === 'disabled';
+            window._pubChecked[u.user_id] = !isAdmin && !isExcluded;
+        });
+    }
+    const PUB_USER_PAGE_SIZE = 10;
+
+    function renderUserTable() {
+        const totalPages = Math.ceil(allUsers.length / PUB_USER_PAGE_SIZE);
+        const start = (window._pubUserPage - 1) * PUB_USER_PAGE_SIZE;
+        const pageUsers = allUsers.slice(start, start + PUB_USER_PAGE_SIZE);
+
+        let rows = pageUsers.map(u => {
+            const isAdmin = u.user_type === 'admin' || u.user_type === 'super_admin';
+            const checked = window._pubChecked[u.user_id] ? 'checked' : '';
+            const tag = isAdmin ? '<span class="tag-admin">管理</span>' : '<span class="tag-admin">普通</span>';
+            return `<tr>
+                <td style="width: 50px; text-align: center; padding: 8px 10px;">
+                    <input type="checkbox" name="pubUser" value="${u.user_id}" ${checked} onchange="window._pubChecked[this.value]=this.checked" style="width: auto; margin: 0;">
+                </td>
+                <td style="padding: 8px 10px; font-size: 14px;">${escapeHtml(u.username)}</td>
+                <td style="padding: 8px 10px; font-size: 14px;">${u.user_id}</td>
+                <td style="width: 85px; padding: 8px 10px; font-size: 14px;">${tag}</td>
+            </tr>`;
+        }).join('');
+
+        let pagination = '';
+        if (totalPages > 1) {
+            pagination = `<div style="display:flex;justify-content:center;align-items:center;gap:10px;padding:8px;font-size:13px;background:var(--bg-gray);border-top:1px solid var(--border-color);">
+                <button class="btn btn-tiny" onclick="window._pubUserPage=1;renderPubUserTable()" ${window._pubUserPage <= 1 ? 'disabled' : ''}>首页</button>
+                <button class="btn btn-tiny" onclick="window._pubUserPage--;renderPubUserTable()" ${window._pubUserPage <= 1 ? 'disabled' : ''}>上一页</button>
+                <span style="color:var(--text-light);">第</span>
+                <input type="number" value="${window._pubUserPage}" min="1" max="${totalPages}" style="width:48px;text-align:center;padding:3px 5px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;" onchange="var p=parseInt(this.value);if(p>=1&&p<=${totalPages}){window._pubUserPage=p;renderPubUserTable();}">
+                <span style="color:var(--text-light);">/ ${totalPages} 页</span>
+                <button class="btn btn-tiny" onclick="window._pubUserPage++;renderPubUserTable()" ${window._pubUserPage >= totalPages ? 'disabled' : ''}>下一页</button>
+                <button class="btn btn-tiny" onclick="window._pubUserPage=${totalPages};renderPubUserTable()" ${window._pubUserPage >= totalPages ? 'disabled' : ''}>末页</button>
+            </div>`;
+        }
+
+        document.getElementById('pubUserTableBody').innerHTML = rows;
+        document.getElementById('pubUserPagination').innerHTML = pagination;
+        // 更新全选框状态
+        const allChecked = pageUsers.every(u => window._pubChecked[u.user_id]);
+        const selAll = document.getElementById('selectAllUsers');
+        if (selAll) selAll.checked = allChecked;
+    }
+    window.renderPubUserTable = renderUserTable;
+
+    const bodyContent = `
+        <div class="form-group">
+            <label>开始日期</label>
+            <input type="date" id="pubStartDate" value="${firstDay.toISOString().substring(0, 10)}">
+        </div>
+        <div class="form-group">
+            <label>结束日期</label>
+            <input type="date" id="pubEndDate" value="${lastDay.toISOString().substring(0, 10)}">
+        </div>
+        <div class="form-group">
+            <label>名称（不填则自动生成）</label>
+            <input type="text" id="pubName" placeholder="如：2026年6月出勤公示">
+        </div>
+        <div class="form-group">
+            <label>参与公示用户</label>
+            <div style="border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--bg-gray);">
+                            <th style="width: 50px; text-align: center; padding: 10px; font-weight: 500; font-size: 14px;">
+                                <input type="checkbox" id="selectAllUsers" checked onchange="toggleAllUsers(this.checked)" style="width: auto; margin: 0;">
+                            </th>
+                            <th style="text-align: left; padding: 10px; font-weight: 500; font-size: 14px;">姓名</th>
+                            <th style="text-align: left; padding: 10px; font-weight: 500; font-size: 14px;">账号</th>
+                            <th style="width: 70px; text-align: left; padding: 10px; font-weight: 500; font-size: 14px;">用户类型</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pubUserTableBody">
+                    </tbody>
+                </table>
+                <div id="pubUserPagination"></div>
+                <div style="padding: 8px 10px; background: var(--bg-gray); border-top: 1px solid var(--border-color); font-size: 12px; color: var(--text-light);">
+                    默认管理员不参与公示
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <label class="switch" style="flex-shrink: 0; margin-top: 2px;" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="pubShowRecords" checked onchange="document.getElementById('pubShowInvalidGroup').style.display = this.checked ? '' : 'none'">
+                    <span class="slider"></span>
+                </label>
+                <div>
+                    <span class="switch-label" style="margin-left: 0; display: block;">公示出勤记录</span>
+                    <div class="switch-hint" style="margin-left: 0; margin-top: 2px;">公示时允许查看每个用户的详细出勤记录</div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" id="pubShowInvalidGroup">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <label class="switch" style="flex-shrink: 0; margin-top: 2px;" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="pubShowInvalid">
+                    <span class="slider"></span>
+                </label>
+                <div>
+                    <span class="switch-label" style="margin-left: 0; display: block;">公示无效出勤记录</span>
+                    <div class="switch-hint" style="margin-left: 0; margin-top: 2px;">同时展示被申诉标记为无效的出勤记录</div>
+                </div>
+            </div>
+        </div>
+    `;
+    openModal(
+        '新建公示',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitCreatePublication()">发布</button>`,
+        null, false
+    );
+    renderUserTable();
+}
+
+function toggleAllUsers(checked) {
+    // 更新所有用户的选中状态（跨页）
+    const allUsers = window._pubAllUsers || [];
+    allUsers.forEach(u => {
+        window._pubChecked[u.user_id] = checked;
+    });
+    // 更新当前页DOM复选框
+    document.querySelectorAll('input[name="pubUser"]').forEach(cb => {
+        cb.checked = checked;
+    });
+}
+
+async function submitCreatePublication() {
+    const startDate = document.getElementById('pubStartDate').value;
+    const endDate = document.getElementById('pubEndDate').value;
+    const name = document.getElementById('pubName').value.trim();
+
+    if (!startDate || !endDate) {
+        showToast('请选择日期', 'error');
+        return;
+    }
+
+    // 从全局状态收集所有选中的用户ID（跨页选择）
+    const allUsers = window._pubAllUsers || [];
+    let selectedUsers = [];
+    for (const u of allUsers) {
+        if (window._pubChecked[u.user_id]) {
+            selectedUsers.push(u.user_id);
+        }
+    }
+    // 若一个也不选，按默认规则：继承系统设置的排行用户
+    if (selectedUsers.length === 0) {
+        const rankingUsers = window.rankingIncludeUsers || [];
+        if (rankingUsers.length > 0) {
+            selectedUsers = [...rankingUsers];
+        } else {
+            selectedUsers = allUsers.filter(u => u.user_type !== 'admin' && u.user_type !== 'super_admin' && u.status !== 'locked' && u.status !== 'disabled').map(u => u.user_id);
+        }
+    }
+
+    const res = await apiRequest('/api/management/publication', {
+        method: 'POST',
+        body: JSON.stringify({
+            start_date: startDate,
+            end_date: endDate,
+            name: name || null,
+            include_users: selectedUsers,
+            show_records: document.getElementById('pubShowRecords').checked,
+            show_invalid_records: document.getElementById('pubShowInvalid').checked
+        })
+    });
+
+    if (res.success) {
+        showToast('发布成功', 'success');
+        closeModal();
+        loadPublications();
+    }
+}
+
+async function editPublication(pubId) {
+    const res = await apiRequest('/api/management/publications');
+    const pub = res.publications.find(p => p.pub_id === pubId);
+    if (!pub) return;
+
+    const usersRes = await apiRequest('/api/management/users');
+    const allUsers = usersRes.users || [];
+    window._editPubAllUsers = allUsers;
+    window._editPubUserPage = 1;
+    window._editPubChecked = {};
+    allUsers.forEach(u => {
+        window._editPubChecked[u.user_id] = pub.include_users && pub.include_users.includes(u.user_id);
+    });
+    const EDIT_PUB_USER_PAGE_SIZE = 10;
+
+    function renderEditUserTable() {
+        const totalPages = Math.ceil(allUsers.length / EDIT_PUB_USER_PAGE_SIZE);
+        const start = (window._editPubUserPage - 1) * EDIT_PUB_USER_PAGE_SIZE;
+        const pageUsers = allUsers.slice(start, start + EDIT_PUB_USER_PAGE_SIZE);
+
+        let rows = pageUsers.map(u => {
+            const isAdmin = u.user_type === 'admin' || u.user_type === 'super_admin';
+            const checked = window._editPubChecked[u.user_id] ? 'checked' : '';
+            const tag = isAdmin ? '<span class="tag-admin">管理</span>' : '<span class="tag-admin">普通</span>';
+            return `<tr>
+                <td style="width: 50px; text-align: center; padding: 8px 10px;">
+                    <input type="checkbox" name="editPubUser" value="${u.user_id}" ${checked} onchange="window._editPubChecked[this.value]=this.checked" style="width: auto; margin: 0;">
+                </td>
+                <td style="padding: 8px 10px; font-size: 14px;">${escapeHtml(u.username)}</td>
+                <td style="padding: 8px 10px; font-size: 14px;">${u.user_id}</td>
+                <td style="width: 85px; padding: 8px 10px; font-size: 14px;">${tag}</td>
+            </tr>`;
+        }).join('');
+
+        let pagination = '';
+        if (totalPages > 1) {
+            pagination = `<div style="display:flex;justify-content:center;align-items:center;gap:10px;padding:8px;font-size:13px;background:var(--bg-gray);border-top:1px solid var(--border-color);">
+                <button class="btn btn-tiny" onclick="window._editPubUserPage=1;renderEditPubUserTable()" ${window._editPubUserPage <= 1 ? 'disabled' : ''}>首页</button>
+                <button class="btn btn-tiny" onclick="window._editPubUserPage--;renderEditPubUserTable()" ${window._editPubUserPage <= 1 ? 'disabled' : ''}>上一页</button>
+                <span style="color:var(--text-light);">第</span>
+                <input type="number" value="${window._editPubUserPage}" min="1" max="${totalPages}" style="width:48px;text-align:center;padding:3px 5px;border:1px solid var(--border-color);border-radius:4px;font-size:13px;" onchange="var p=parseInt(this.value);if(p>=1&&p<=${totalPages}){window._editPubUserPage=p;renderEditPubUserTable();}">
+                <span style="color:var(--text-light);">/ ${totalPages} 页</span>
+                <button class="btn btn-tiny" onclick="window._editPubUserPage++;renderEditPubUserTable()" ${window._editPubUserPage >= totalPages ? 'disabled' : ''}>下一页</button>
+                <button class="btn btn-tiny" onclick="window._editPubUserPage=${totalPages};renderEditPubUserTable()" ${window._editPubUserPage >= totalPages ? 'disabled' : ''}>末页</button>
+            </div>`;
+        }
+
+        document.getElementById('editPubUserTableBody').innerHTML = rows;
+        document.getElementById('editPubUserPagination').innerHTML = pagination;
+        const allChecked = pageUsers.every(u => window._editPubChecked[u.user_id]);
+        const selAll = document.getElementById('editSelectAllUsers');
+        if (selAll) selAll.checked = allChecked;
+    }
+    window.renderEditPubUserTable = renderEditUserTable;
+
+    const bodyContent = `
+        <div class="form-group">
+            <label>名称</label>
+            <input type="text" id="editPubName" value="${escapeHtml(pub.name)}">
+        </div>
+        <div class="form-group">
+            <label>开始日期</label>
+            <input type="date" id="editPubStartDate" value="${pub.start_date}">
+        </div>
+        <div class="form-group">
+            <label>结束日期</label>
+            <input type="date" id="editPubEndDate" value="${pub.end_date}">
+        </div>
+        <div class="form-group">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <label class="switch" style="flex-shrink: 0; margin-top: 2px;" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="editPubActive" ${pub.is_active ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+                <div>
+                    <span class="switch-label" style="margin-left: 0; display: block;">显示公示</span>
+                    <div class="switch-hint" style="margin-left: 0; margin-top: 2px;">关闭后公示将隐藏，用户不可见</div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>参与公示用户</label>
+            <div style="border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--bg-gray);">
+                            <th style="width: 50px; text-align: center; padding: 10px; font-weight: 500; font-size: 14px;">
+                                <input type="checkbox" id="editSelectAllUsers" onchange="toggleEditAllUsers(this.checked)" style="width: auto; margin: 0;">
+                            </th>
+                            <th style="text-align: left; padding: 10px; font-weight: 500; font-size: 14px;">姓名</th>
+                            <th style="text-align: left; padding: 10px; font-weight: 500; font-size: 14px;">账号</th>
+                            <th style="width: 70px; text-align: left; padding: 10px; font-weight: 500; font-size: 14px;">用户类型</th>
+                        </tr>
+                    </thead>
+                    <tbody id="editPubUserTableBody">
+                    </tbody>
+                </table>
+                <div id="editPubUserPagination"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <label class="switch" style="flex-shrink: 0; margin-top: 2px;" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="editPubShowRecords" ${pub.show_records !== false ? 'checked' : ''} onchange="document.getElementById('editPubShowInvalidGroup').style.display = this.checked ? '' : 'none'">
+                    <span class="slider"></span>
+                </label>
+                <div>
+                    <span class="switch-label" style="margin-left: 0; display: block;">公示出勤记录</span>
+                    <div class="switch-hint" style="margin-left: 0; margin-top: 2px;">公示时允许查看每个用户的详细出勤记录</div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" id="editPubShowInvalidGroup" style="${pub.show_records !== false ? '' : 'display: none;'}">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <label class="switch" style="flex-shrink: 0; margin-top: 2px;" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="editPubShowInvalid" ${pub.show_invalid_records ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+                <div>
+                    <span class="switch-label" style="margin-left: 0; display: block;">公示无效出勤记录</span>
+                    <div class="switch-hint" style="margin-left: 0; margin-top: 2px;">同时展示被申诉标记为无效的出勤记录</div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 10px;">
+            <button class="btn btn-secondary btn-tiny" onclick="previewPublication('${pubId}')">预览</button>
+            <button class="btn btn-secondary btn-tiny" onclick="exportPublication('${pubId}')">导出</button>
+        </div>
+    `;
+    openModal(
+        '编辑公示',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitEditPublication('${pubId}')">保存</button>`,
+        null, false
+    );
+    renderEditUserTable();
+}
+
+function toggleEditAllUsers(checked) {
+    // 更新所有用户的选中状态（跨页）
+    const allUsers = window._editPubAllUsers || [];
+    allUsers.forEach(u => {
+        window._editPubChecked[u.user_id] = checked;
+    });
+    // 更新当前页DOM复选框
+    document.querySelectorAll('input[name="editPubUser"]').forEach(cb => {
+        cb.checked = checked;
+    });
+}
+
+async function submitEditPublication(pubId) {
+    const name = document.getElementById('editPubName').value.trim();
+    const isActive = document.getElementById('editPubActive').checked;
+    const startDate = document.getElementById('editPubStartDate').value;
+    const endDate = document.getElementById('editPubEndDate').value;
+    // 从全局状态收集所有选中的用户ID（跨页选择）
+    const allUsers = window._editPubAllUsers || [];
+    let selectedUsers = [];
+    for (const u of allUsers) {
+        if (window._editPubChecked[u.user_id]) {
+            selectedUsers.push(u.user_id);
+        }
+    }
+    // 若一个也不选，按默认规则：继承系统设置的排行用户
+    if (selectedUsers.length === 0) {
+        const rankingUsers = window.rankingIncludeUsers || [];
+        if (rankingUsers.length > 0) {
+            selectedUsers = [...rankingUsers];
+        } else {
+            selectedUsers = allUsers.filter(u => u.user_type !== 'admin' && u.user_type !== 'super_admin' && u.status !== 'locked' && u.status !== 'disabled').map(u => u.user_id);
+        }
+    }
+
+    const res = await apiRequest(`/api/management/publication/${pubId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            name: name,
+            is_active: isActive,
+            start_date: startDate,
+            end_date: endDate,
+            include_users: selectedUsers,
+            show_records: document.getElementById('editPubShowRecords').checked,
+            show_invalid_records: document.getElementById('editPubShowInvalid').checked
+        })
+    });
+
+    if (res.success) {
+        showToast('保存成功', 'success');
+        closeModal();
+        loadPublications();
+    }
+}
+
+async function deletePublication(pubId) {
+    showConfirm('确定要删除这个公示吗？', async () => {
+        const res = await apiRequest(`/api/management/publication/${pubId}`, { method: 'DELETE' });
+        if (res.success) {
+            showToast('删除成功', 'success');
+            loadPublications();
+        }
+    });
+}
+
+function exportPublication(pubId) {
+    window.location.href = `/api/management/publication/${pubId}/export`;
+}
+
+async function previewPublication(pubId) {
+    // 获取公示详情和排行数据
+    const [pubRes, rankingsRes] = await Promise.all([
+        apiRequest('/api/management/publications'),
+        apiRequest(`/api/management/publication/${pubId}/rankings`)
+    ]);
+
+    const pub = pubRes.publications.find(p => p.pub_id === pubId);
+    if (!pub) return;
+
+    const allRankings = rankingsRes.success ? rankingsRes.rankings : [];
+
+    // 计算总时长
+    let totalMinutes = 0;
+    allRankings.forEach(r => {
+        totalMinutes += r.total_minutes || 0;
+    });
+    const totalHours = (totalMinutes / 60).toFixed(2);
+
+    const pageSize = 10;
+    const totalPages = Math.ceil(allRankings.length / pageSize) || 1;
+
+    function renderPage(page) {
+        const start = (page - 1) * pageSize;
+        const pageData = allRankings.slice(start, start + pageSize);
+
+        let rows = pageData.map(r => {
+            return `<tr>
+                <td style="padding: 8px 10px; text-align: center;">${r.rank}</td>
+                <td style="padding: 8px 10px;">${escapeHtml(r.username)}</td>
+                <td style="padding: 8px 10px;">${r.user_id}</td>
+                <td style="padding: 8px 10px;">${r.duration_str}</td>
+                ${pub.show_records ? `<td style="padding: 8px 10px; text-align: center;"><button class="btn btn-tiny btn-secondary" onclick="viewPubUserRecords('${pubId}', '${r.user_id}', '${escapeHtml(r.username)}')">查看记录</button></td>` : ''}
+            </tr>`;
+        }).join('');
+
+        let html = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="margin: 0 0 10px 0;">${escapeHtml(pub.name)}</h2>
+            <div style="color: var(--text-light); font-size: 13px;">
+                ${pub.start_date} 至 ${pub.end_date} | 共 ${allRankings.length} 人 | 合计 ${totalHours}小时
+            </div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: var(--bg-gray);">
+                    <th style="padding: 10px; text-align: center; font-weight: 500;">排名</th>
+                    <th style="padding: 10px; text-align: left; font-weight: 500;">姓名</th>
+                    <th style="padding: 10px; text-align: left; font-weight: 500;">账号</th>
+                    <th style="padding: 10px; text-align: left; font-weight: 500;">时长</th>
+                    ${pub.show_records ? '<th style="padding: 10px; text-align: center; font-weight: 500;">操作</th>' : ''}
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+
+        if (totalPages > 1) {
+            html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                <span>第${page}/${totalPages}页</span>
+                <button class="btn btn-tiny" onclick="previewPubGoTo(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="previewPubGoTo(parseInt(this.value))">
+                <button class="btn btn-tiny" onclick="previewPubGoTo(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+            </div>`;
+        }
+        return html;
+    }
+
+    openModal(
+        '公示预览',
+        renderPage(1),
+        `<button class="btn btn-secondary" onclick="closeModal()">关闭</button>`
+    );
+    lockModalHeight();
+    window.previewPubGoTo = (page) => {
+        if (page < 1 || page > totalPages) return;
+        document.getElementById('modalBody').innerHTML = renderPage(page);
+        lockModalHeight();
+    };
+}
+
+async function viewPubUserRecords(pubId, userId, username) {
+    const rankingsRes = await apiRequest(`/api/management/publication/${pubId}/rankings`);
+    if (!rankingsRes.success) {
+        showToast('获取数据失败', 'error');
+        return;
+    }
+    const userRanking = rankingsRes.rankings.find(r => r.user_id === userId);
+    if (!userRanking || !userRanking.records || userRanking.records.length === 0) {
+        showToast('该用户暂无出勤记录', 'info');
+        return;
+    }
+
+    const allRecords = userRanking.records.sort((a, b) => a.check_in.localeCompare(b.check_in));
+    const totalMinutes = allRecords.reduce((sum, r) => sum + (r.duration_minutes || 0), 0);
+    const validCount = allRecords.filter(r => r.status === 'valid').length;
+    const totalCount = allRecords.length;
+    const validRate = totalCount > 0 ? ((validCount / totalCount) * 100).toFixed(1) : '0.0';
+    const totalHours = (totalMinutes / 60).toFixed(2);
+    const avgHours = validCount > 0 ? (totalMinutes / validCount / 60).toFixed(2) : '0.00';
+
+    const pageSize = 10;
+    const totalPages = Math.ceil(allRecords.length / pageSize);
+
+    function renderPage(page) {
+        const start = (page - 1) * pageSize;
+        const pageData = allRecords.slice(start, start + pageSize);
+
+        let rows = pageData.map(r => {
+            const date = r.check_in.substring(0, 10);
+            const timeIn = r.check_in.substring(11, 19);
+            const timeOut = r.check_out ? r.check_out.substring(11, 19) : '-';
+            const mins = r.duration_minutes;
+            const duration = mins != null ? `${(mins / 60).toFixed(2)}小时` : '-';
+            const statusLabel = r.status === 'valid' ? '有效' : '无效';
+            const statusColor = r.status === 'valid' ? '#1e7e34' : '#c5221f';
+            const statusBg = r.status === 'valid' ? '#e6f4ea' : '#fce8e6';
+            return `<tr>
+                <td>${date}</td>
+                <td>${timeIn}</td>
+                <td>${timeOut}</td>
+                <td>${duration}</td>
+                <td><span style="display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: ${statusColor}; background: ${statusBg};">${statusLabel}</span></td>
+            </tr>`;
+        }).join('');
+
+        let html = `
+        <h4 style="margin-bottom: 12px;">${escapeHtml(username)} 的出勤记录</h4>
+        <div style="display: flex; gap: 12px; margin-bottom: 15px; font-size: 13px; color: var(--text-light); flex-wrap: wrap;">
+            <span>出勤次数 ${totalCount}</span>
+            <span>有效次数 ${validCount}</span>
+            <span>有效率 ${validRate}%</span>
+            <span>总时长 ${totalHours}小时</span>
+            <span>平均时长 ${avgHours}小时</span>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead><tr style="background: var(--bg-gray);">
+                <th style="padding: 10px; text-align: left; font-weight: 500;">日期</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">签到时间</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">签退时间</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">时长</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">状态</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+
+        if (totalPages > 1) {
+            html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                <span>第${page}/${totalPages}页</span>
+                <button class="btn btn-tiny" onclick="viewPubRecordsGoTo(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="viewPubRecordsGoTo(parseInt(this.value))">
+                <button class="btn btn-tiny" onclick="viewPubRecordsGoTo(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+            </div>`;
+        }
+        return html;
+    }
+
+    openModal('查看记录', renderPage(1), `<button class="btn btn-secondary" onclick="previewPublication('${pubId}')">返回排行</button><button class="btn btn-secondary" onclick="closeModal()">关闭</button>`);
+    lockModalHeight();
+    window.viewPubRecordsGoTo = (page) => {
+        if (page < 1 || page > totalPages) return;
+        document.getElementById('modalBody').innerHTML = renderPage(page);
+        lockModalHeight();
+    };
+}
+
+async function loadReports() {
+    const res = await apiRequest('/api/management/reports');
+    const panel = document.getElementById('reportsTable');
+
+    if (res.success && res.reports.length > 0) {
+        allReports = res.reports;
+        const pageSize = 10;
+        const totalPages = Math.ceil(allReports.length / pageSize);
+
+        function renderPage(page) {
+            const start = (page - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = allReports.slice(start, end);
+
+            let html = '<table><thead><tr><th>时间</th><th>类型</th><th>被举报人</th><th>举报人</th><th>原因</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+            pageData.forEach(r => {
+                html += `<tr>
+                    <td>${formatDateTime(r.report_time)}</td>
+                    <td>${r.report_type === 'online' ? '在线举报' : '排名举报'}</td>
+                    <td>${escapeHtml(r.reported_name)}</td>
+                    <td>${escapeHtml(r.reporter_name)}</td>
+                    <td>${r.reason ? escapeHtml(r.reason).substring(0, 20) + '...' : '-'}</td>
+                    <td class="status-${r.status}">${r.status === 'pending' ? '待处理' : r.status === 'valid' ? '有效' : r.status === 'invalid' ? '无效' : '已处理'}</td>
+                    <td>
+                        <button class="btn btn-tiny btn-edit" onclick="viewReport('${r.report_id}')">查看</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+
+            if (totalPages > 1) {
+                html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <span>共${allReports.length}条，第${page}/${totalPages}页</span>
+                    <button class="btn btn-tiny" onclick="loadReportsPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                    <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="loadReportsPage(parseInt(this.value))">
+                    <button class="btn btn-tiny" onclick="loadReportsPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+                </div>`;
+            }
+            return html;
+        }
+
+        panel.innerHTML = renderPage(1);
+        window.loadReportsPage = (page) => {
+            panel.innerHTML = renderPage(page);
+        };
+    } else {
+        panel.innerHTML = '<div class="empty-state">暂无举报记录</div>';
+    }
+}
+
+async function viewReport(reportId) {
+    const res = await apiRequest('/api/management/reports');
+    const report = res.reports.find(r => r.report_id === reportId);
+    if (!report) return;
+
+    let actionButtons = '';
+    if (report.report_type === 'online') {
+        if (report.status === 'pending') {
+            actionButtons = `
+                <button class="btn-lg btn-lg-primary" onclick="processReport('${reportId}', 'valid')">举报有效</button>
+                <button class="btn-lg btn-lg-secondary" onclick="processReportInvalid('${reportId}')">举报无效</button>
+            `;
+        } else {
+            actionButtons = `<button class="btn-lg btn-lg-primary" onclick="reprocessReport('${reportId}')">重新处理</button>`;
+        }
+    } else {
+        if (report.status === 'pending') {
+            actionButtons = `<button class="btn-lg btn-lg-primary" onclick="processReport('${reportId}', 'processed')">已处理</button>`;
+        } else {
+            actionButtons = `<button class="btn-lg btn-lg-primary" onclick="reprocessReport('${reportId}')">重新处理</button>`;
+        }
+    }
+
+    const bodyContent = `
+        <div class="form-group">
+            <label>举报类型</label>
+            <input type="text" value="${report.report_type === 'online' ? '在线举报' : '排名举报'}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>被举报人</label>
+            <input type="text" value="${escapeHtml(report.reported_name)} (${escapeHtml(report.reported_id)})" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>举报人</label>
+            <input type="text" value="${escapeHtml(report.reporter_name)}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>举报时间</label>
+            <input type="text" value="${formatDateTime(report.report_time)}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>举报原因</label>
+            <textarea readonly style="background: var(--bg-gray);">${report.reason || '无'}</textarea>
+        </div>
+        ${report.evidence_images && report.evidence_images.length > 0 ? `
+        <div class="form-group">
+            <label>凭证图片</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                ${report.evidence_images.map(img => `<img src="${img}" style="max-width: 200px; max-height: 200px; border: 1px solid var(--border-color);">`).join('')}
+            </div>
+        </div>
+        ` : ''}
+        ${report.processed_at ? `
+        <div class="form-group">
+            <label>处理结果</label>
+            <input type="text" value="${escapeHtml(report.process_result || '')}" readonly style="background: var(--bg-gray);">
+        </div>
+        ` : ''}
+    `;
+    openModal(
+        '举报详情',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+         ${actionButtons}`,
+        null, false
+    );
+}
+
+async function processReport(reportId, action) {
+    const btn = event.target;
+    btn.disabled = true;
+
+    const res = await apiRequest(`/api/management/report/${reportId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ action: action })
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadReports();
+    } else {
+        btn.disabled = false;
+    }
+}
+
+async function processReportInvalid(reportId) {
+    const res = await apiRequest('/api/management/reports');
+    const report = res.reports.find(r => r.report_id === reportId);
+    if (!report) return;
+
+    const bodyContent = `
+        <p>确定要将此举报标记为无效吗？</p>
+        <div class="form-group">
+            <label>处理说明</label>
+            <textarea id="reportProcessResult" placeholder="请输入处理说明"></textarea>
+        </div>
+    `;
+    openModal(
+        '举报无效处理',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" id="submitReportInvalidBtn" onclick="submitReportInvalid('${reportId}')">提交</button>`,
+        null, false
+    );
+}
+
+async function submitReportInvalid(reportId) {
+    const btn = document.getElementById('submitReportInvalidBtn');
+    if (btn) btn.disabled = true;
+
+    const processResult = document.getElementById('reportProcessResult').value.trim();
+
+    const res = await apiRequest(`/api/management/report/${reportId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            action: 'invalid',
+            process_result: processResult
+        })
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadReports();
+    } else {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function reprocessReport(reportId) {
+    const res = await apiRequest('/api/management/reports');
+    const report = res.reports.find(r => r.report_id === reportId);
+    if (!report) return;
+
+    let bodyContent = '';
+    let buttons = '';
+
+    if (report.report_type === 'online') {
+        bodyContent = `
+            <p>请选择处理结果：</p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>处理结果</label>
+                <select id="reprocessAction" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <option value="valid">举报有效</option>
+                    <option value="invalid">举报无效</option>
+                </select>
+            </div>
+            <div class="form-group" id="reprocessCheckOutGroup" style="display: none;">
+                <label>签退时间</label>
+                <input type="datetime-local" id="reprocessCheckOut" value="${report.report_time.substring(0, 16)}">
+            </div>
+            <div class="form-group">
+                <label>处理说明</label>
+                <textarea id="reprocessResult" placeholder="请输入处理说明">${report.process_result || ''}</textarea>
+            </div>
+        `;
+        buttons = `
+            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+            <button class="btn-lg btn-lg-primary" id="reprocessSubmitBtn" onclick="submitReprocessReport('${reportId}')">提交</button>
+        `;
+    } else {
+        bodyContent = `
+            <p>请选择处理结果：</p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>处理结果</label>
+                <select id="reprocessAction" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <option value="processed">已处理</option>
+                    <option value="pending">未处理</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>处理说明</label>
+                <textarea id="reprocessResult" placeholder="请输入处理说明">${report.process_result || ''}</textarea>
+            </div>
+        `;
+        buttons = `
+            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+            <button class="btn-lg btn-lg-primary" id="reprocessSubmitBtn" onclick="submitReprocessReport('${reportId}')">提交</button>
+        `;
+    }
+
+    openModal('重新处理', bodyContent, buttons, null, false);
+
+    // 绑定动态事件
+    if (report.report_type === 'online') {
+        document.getElementById('reprocessAction').addEventListener('change', function() {
+            document.getElementById('reprocessCheckOutGroup').style.display = this.value === 'invalid' ? 'block' : 'none';
+        });
+    }
+}
+
+async function submitReprocessReport(reportId) {
+    const btn = document.getElementById('reprocessSubmitBtn');
+    if (btn) btn.disabled = true;
+
+    const action = document.getElementById('reprocessAction').value;
+    const processResult = document.getElementById('reprocessResult').value.trim();
+
+    const data = { action: action, process_result: processResult };
+    if (action === 'invalid') {
+        data.check_out_time = document.getElementById('reprocessCheckOut').value;
+    }
+
+    const res = await apiRequest(`/api/management/report/${reportId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadReports();
+    } else {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function loadAppeals() {
+    const res = await apiRequest('/api/management/appeals');
+    const panel = document.getElementById('appealsTable');
+
+    if (res.success && res.appeals.length > 0) {
+        allAppeals = res.appeals;
+        const pageSize = 10;
+        const totalPages = Math.ceil(allAppeals.length / pageSize);
+
+        function renderPage(page) {
+            const start = (page - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = allAppeals.slice(start, end);
+
+            let html = '<table><thead><tr><th>时间</th><th>申诉人</th><th>原签退时间</th><th>申诉签退</th><th>原因</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+            pageData.forEach(a => {
+                html += `<tr>
+                    <td>${formatDateTime(a.appeal_time)}</td>
+                    <td>${escapeHtml(a.username)}</td>
+                    <td>${a.original_check_out ? a.original_check_out.substring(11, 19) : '-'}</td>
+                    <td>${a.new_check_out ? a.new_check_out.substring(11, 19) : '-'}</td>
+                    <td>${a.reason ? escapeHtml(a.reason).substring(0, 20) + '...' : '-'}</td>
+                    <td class="status-${a.status}">${a.status === 'pending' ? '待处理' : a.status === 'valid' ? '有效' : '无效'}</td>
+                    <td>
+                        <button class="btn btn-tiny btn-edit" onclick="viewAppeal('${a.appeal_id}')">查看</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+
+            if (totalPages > 1) {
+                html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <span>共${allAppeals.length}条，第${page}/${totalPages}页</span>
+                    <button class="btn btn-tiny" onclick="loadAppealsPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                    <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="loadAppealsPage(parseInt(this.value))">
+                    <button class="btn btn-tiny" onclick="loadAppealsPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+                </div>`;
+            }
+            return html;
+        }
+
+        panel.innerHTML = renderPage(1);
+        window.loadAppealsPage = (page) => {
+            panel.innerHTML = renderPage(page);
+        };
+    } else {
+        panel.innerHTML = '<div class="empty-state">暂无申诉记录</div>';
+    }
+}
+
+async function viewAppeal(appealId) {
+    const res = await apiRequest('/api/management/appeals');
+    const appeal = res.appeals.find(a => a.appeal_id === appealId);
+    if (!appeal) return;
+
+    let actionButtons = '';
+    if (appeal.status === 'pending') {
+        actionButtons = `
+            <button class="btn-lg btn-lg-primary" onclick="processAppealValid('${appealId}')">申诉有效</button>
+            <button class="btn-lg btn-lg-secondary" onclick="processAppealInvalid('${appealId}')">申诉无效</button>
+        `;
+    } else {
+        actionButtons = `<button class="btn-lg btn-lg-primary" onclick="reprocessAppeal('${appealId}')">重新处理</button>`;
+    }
+
+    const bodyContent = `
+        <div class="form-group">
+            <label>申诉人</label>
+            <input type="text" value="${escapeHtml(appeal.username)} (${escapeHtml(appeal.user_id)})" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>申诉时间</label>
+            <input type="text" value="${formatDateTime(appeal.appeal_time)}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>原始签退时间</label>
+            <input type="text" value="${appeal.original_check_out ? formatDateTime(appeal.original_check_out) : '未签退'}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>申诉签退时间</label>
+            <input type="text" value="${appeal.new_check_out ? formatDateTime(appeal.new_check_out) : '-'}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>申诉理由</label>
+            <textarea readonly style="background: var(--bg-gray);">${appeal.reason || '无'}</textarea>
+        </div>
+        ${appeal.evidence_images && appeal.evidence_images.length > 0 ? `
+        <div class="form-group">
+            <label>凭证图片</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                ${appeal.evidence_images.map(img => `<img src="${img}" style="max-width: 200px; max-height: 200px; border: 1px solid var(--border-color);">`).join('')}
+            </div>
+        </div>
+        ` : ''}
+        ${appeal.processed_at ? `
+        <div class="form-group">
+            <label>处理结果</label>
+            <input type="text" value="${escapeHtml(appeal.process_result || '')}" readonly style="background: var(--bg-gray);">
+        </div>
+        ` : ''}
+    `;
+    openModal(
+        '申诉详情',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+         ${actionButtons}`,
+        null, false
+    );
+}
+
+async function processAppeal(appealId, action) {
+    const btn = event.target;
+    btn.disabled = true;
+
+    const res = await apiRequest(`/api/management/appeal/${appealId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ action: action })
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadAppeals();
+    } else {
+        btn.disabled = false;
+    }
+}
+
+async function processAppealValid(appealId) {
+    const res = await apiRequest('/api/management/appeals');
+    const appeal = res.appeals.find(a => a.appeal_id === appealId);
+    if (!appeal) return;
+
+    const bodyContent = `
+        <p>请确认签退时间（申诉人申请的签退时间）：</p>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>签退时间</label>
+            <input type="datetime-local" id="appealValidCheckOut" value="${appeal.new_check_out ? appeal.new_check_out.substring(0, 16) : appeal.appeal_time.substring(0, 16)}">
+        </div>
+        <div class="form-group">
+            <label>处理说明</label>
+            <textarea id="appealValidResult" placeholder="请输入处理说明"></textarea>
+        </div>
+    `;
+    openModal(
+        '申诉有效处理',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" id="submitAppealValidBtn" onclick="submitAppealValid('${appealId}')">提交</button>`,
+        null, false
+    );
+}
+
+async function submitAppealValid(appealId) {
+    const btn = document.getElementById('submitAppealValidBtn');
+    if (btn) btn.disabled = true;
+
+    const newCheckOut = document.getElementById('appealValidCheckOut').value;
+    const processResult = document.getElementById('appealValidResult').value.trim();
+
+    const res = await apiRequest(`/api/management/appeal/${appealId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            action: 'valid',
+            new_check_out: newCheckOut,
+            process_result: processResult
+        })
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadAppeals();
+    } else {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function processAppealInvalid(appealId) {
+    const res = await apiRequest('/api/management/appeals');
+    const appeal = res.appeals.find(a => a.appeal_id === appealId);
+    if (!appeal) return;
+
+    const bodyContent = `
+        <p>请填写处理说明：</p>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>处理说明</label>
+            <textarea id="appealProcessResult" placeholder="请输入处理说明"></textarea>
+        </div>
+    `;
+    openModal(
+        '申诉无效处理',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" id="submitAppealInvalidBtn" onclick="submitAppealInvalid('${appealId}')">提交</button>`,
+        null, false
+    );
+}
+
+async function submitAppealInvalid(appealId) {
+    const btn = document.getElementById('submitAppealInvalidBtn');
+    if (btn) btn.disabled = true;
+
+    const processResult = document.getElementById('appealProcessResult').value.trim();
+
+    const res = await apiRequest(`/api/management/appeal/${appealId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            action: 'invalid',
+            process_result: processResult
+        })
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadAppeals();
+    } else {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function reprocessAppeal(appealId) {
+    const res = await apiRequest('/api/management/appeals');
+    const appeal = res.appeals.find(a => a.appeal_id === appealId);
+    if (!appeal) return;
+
+    const bodyContent = `
+        <p>请选择处理结果：</p>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>处理结果</label>
+            <select id="reprocessAction" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px;">
+                <option value="valid">申诉有效</option>
+                <option value="invalid">申诉无效</option>
+            </select>
+        </div>
+        <div class="form-group" id="reprocessCheckOutGroup" style="display: none;">
+            <label>签退时间</label>
+            <input type="datetime-local" id="reprocessCheckOut" value="${appeal.new_check_out ? appeal.new_check_out.substring(0, 16) : appeal.appeal_time.substring(0, 16)}">
+        </div>
+        <div class="form-group">
+            <label>处理说明</label>
+            <textarea id="reprocessResult" placeholder="请输入处理说明">${appeal.process_result || ''}</textarea>
+        </div>
+    `;
+    openModal('重新处理', bodyContent, `
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn-lg btn-lg-primary" id="reprocessSubmitBtn" onclick="submitReprocessAppeal('${appealId}')">提交</button>
+    `, null, false);
+
+    document.getElementById('reprocessAction').addEventListener('change', function() {
+        document.getElementById('reprocessCheckOutGroup').style.display = this.value === 'valid' ? 'block' : 'none';
+    });
+}
+
+async function submitReprocessAppeal(appealId) {
+    const btn = document.getElementById('reprocessSubmitBtn');
+    if (btn) btn.disabled = true;
+
+    const action = document.getElementById('reprocessAction').value;
+    const processResult = document.getElementById('reprocessResult').value.trim();
+
+    const data = { action: action, process_result: processResult };
+    if (action === 'valid') {
+        data.new_check_out = document.getElementById('reprocessCheckOut').value;
+    }
+
+    const res = await apiRequest(`/api/management/appeal/${appealId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    if (res.success) {
+        showToast('处理成功', 'success');
+        closeModal();
+        loadAppeals();
+    } else {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function loadUsers() {
+    const res = await apiRequest('/api/management/users');
+    const panel = document.getElementById('usersTable');
+
+    if (res.success && res.users.length > 0) {
+        allUsers = res.users;
+        window._userSearchKeyword = '';
+        const pageSize = 10;
+
+        function getFilteredUsers() {
+            const kw = (window._userSearchKeyword || '').toLowerCase().trim();
+            if (!kw) return allUsers;
+            return allUsers.filter(u =>
+                u.user_id.toLowerCase().includes(kw) ||
+                u.username.toLowerCase().includes(kw)
+            );
+        }
+
+        function renderTable(page) {
+            const filtered = getFilteredUsers();
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            page = Math.min(page, totalPages);
+            const start = (page - 1) * pageSize;
+            const pageData = filtered.slice(start, start + pageSize);
+
+            let html = '<table><thead><tr><th>编号</th><th>姓名</th><th>类型</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+            if (pageData.length === 0) {
+                html += '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-light);">无匹配用户</td></tr>';
+            } else {
+                pageData.forEach(u => {
+                    let typeLabel = u.user_type === 'super_admin' ? '超管' : u.user_type === 'admin' ? '管理' : '普通';
+                    let statusLabel = u.status === 'normal' ? '正常' : u.status === 'locked' ? '锁定' : '禁用';
+                    html += `<tr>
+                        <td>${escapeHtml(u.user_id)}</td>
+                        <td>${escapeHtml(u.username)}</td>
+                        <td>${typeLabel}</td>
+                        <td class="status-${u.status}">${statusLabel}</td>
+                        <td>
+                            <button class="btn btn-tiny btn-edit" onclick="editUser('${u.user_id}')">编辑</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            html += '</tbody></table>';
+
+            if (totalPages > 1) {
+                html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <span>共${filtered.length}条，第${page}/${totalPages}页</span>
+                    <button class="btn btn-tiny" onclick="loadUsersPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                    <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="loadUsersPage(parseInt(this.value))">
+                    <button class="btn btn-tiny" onclick="loadUsersPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+                </div>`;
+            }
+            document.getElementById('userTableContent').innerHTML = html;
+        }
+
+        panel.innerHTML = `
+            <div style="margin-bottom: 12px;">
+                <input type="text" id="userSearchInput" placeholder="搜索编号或姓名..."
+                       style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;"
+                       oninput="window._userSearchKeyword = this.value; loadUsersPage(1)">
+            </div>
+            <div id="userTableContent"></div>
+        `;
+
+        renderTable(1);
+        window.loadUsersPage = (page) => {
+            renderTable(page);
+        };
+    } else {
+        panel.innerHTML = '<div class="empty-state">暂无用户</div>';
+    }
+}
+
+function showAddUser() {
+    const bodyContent = `
+        <div class="form-group">
+            <label>编号 <span style="color: red;">*</span></label>
+            <input type="text" id="addUserId" placeholder="请输入编号">
+        </div>
+        <div class="form-group">
+            <label>姓名 <span style="color: red;">*</span></label>
+            <input type="text" id="addUserName" placeholder="请输入姓名">
+        </div>
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="addUserEmail" placeholder="请输入邮箱">
+        </div>
+        <div class="form-group">
+            <label>类型</label>
+            <select id="addUserType">
+                <option value="regular">普通用户</option>
+                <option value="admin">管理员</option>
+            </select>
+        </div>
+    `;
+    openModal(
+        '添加用户',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitAddUser()">添加</button>`,
+        null, false
+    );
+}
+
+async function submitAddUser() {
+    const userId = document.getElementById('addUserId').value.trim();
+    const username = document.getElementById('addUserName').value.trim();
+    const email = document.getElementById('addUserEmail').value.trim();
+    const userType = document.getElementById('addUserType').value;
+
+    if (!userId || !username) {
+        showToast('请填写必填项', 'error');
+        return;
+    }
+
+    const res = await apiRequest('/api/management/user', {
+        method: 'POST',
+        body: JSON.stringify({
+            user_id: userId,
+            username: username,
+            email: email,
+            user_type: userType
+        })
+    });
+
+    if (res.success) {
+        showToast('添加成功', 'success');
+        closeModal();
+        loadUsers();
+    }
+}
+
+async function editUser(userId) {
+    const res = await apiRequest('/api/management/users');
+    const user = res.users.find(u => u.user_id === userId);
+    if (!user) return;
+
+    let typeOptions = '';
+    if (user.user_type !== 'super_admin') {
+        typeOptions = `<option value="regular" ${user.user_type === 'regular' ? 'selected' : ''}>普通用户</option>
+                       <option value="admin" ${user.user_type === 'admin' ? 'selected' : ''}>管理员</option>`;
+    }
+
+    let statusOptions = '';
+    if (user.user_type !== 'super_admin') {
+        statusOptions = `<option value="normal" ${user.status === 'normal' ? 'selected' : ''}>正常</option>
+                         <option value="locked" ${user.status === 'locked' ? 'selected' : ''}>锁定</option>
+                         <option value="disabled" ${user.status === 'disabled' ? 'selected' : ''}>禁用</option>`;
+    }
+
+    const bodyContent = `
+        <div class="form-group">
+            <label>编号</label>
+            <input type="text" value="${escapeHtml(user.user_id)}" readonly style="background: var(--bg-gray);">
+        </div>
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" id="editUserName" value="${escapeHtml(user.username)}">
+        </div>
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="editUserEmail" value="${escapeHtml(user.email || '')}">
+        </div>
+        ${user.user_type !== 'super_admin' ? `
+        <div class="form-group">
+            <label>类型</label>
+            <select id="editUserType">${typeOptions}</select>
+        </div>
+        ` : ''}
+        ${user.user_type !== 'super_admin' ? `
+        <div class="form-group">
+            <label>状态</label>
+            <select id="editUserStatus">${statusOptions}</select>
+        </div>
+        ` : ''}
+    `;
+    openModal(
+        '编辑用户',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitEditUser('${userId}')">保存</button>`,
+        null, false
+    );
+}
+
+async function submitEditUser(userId) {
+    const username = document.getElementById('editUserName').value.trim();
+    const email = document.getElementById('editUserEmail').value.trim();
+    const userType = document.getElementById('editUserType')?.value;
+    const status = document.getElementById('editUserStatus')?.value;
+
+    const data = { username };
+    if (email) data.email = email;
+    if (userType) data.user_type = userType;
+    if (status) data.status = status;
+
+    const res = await apiRequest(`/api/management/user/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+
+    if (res.success) {
+        showToast('保存成功', 'success');
+        closeModal();
+        loadUsers();
+    }
+}
+
+function downloadUserTemplate() {
+    const csv = '\ufeffuser_id,username,email,user_type\n2023001,张三,zhangsan@example.com,regular\n2023002,李四,lisi@example.com,regular';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'user_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function downloadRecordTemplate() {
+    const csv = '\ufeffuser_id,username,check_in,check_out,status\n2023001,张三,2026-06-01 08:00:00,2026-06-01 12:00:00,valid\n2023002,李四,2026-06-01 09:00:00,2026-06-01 18:00:00,valid';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'attendance_record_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+async function importUsers(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = '';
+
+    const text = await file.text();
+    const records = parseCSV(text);
+    if (records.length < 2) { showToast('CSV 文件为空或格式错误', 'error'); return; }
+
+    const headers = records[0];
+    const userIdIdx = headers.indexOf('user_id');
+    const usernameIdx = headers.indexOf('username') >= 0 ? headers.indexOf('username') : headers.indexOf('姓名');
+    const emailIdx = headers.indexOf('email');
+    const typeIdx = headers.indexOf('user_type');
+
+    if (userIdIdx < 0 || usernameIdx < 0) {
+        showToast('CSV 缺少必要列(user_id, username)', 'error'); return;
+    }
+
+    const rows = [];
+    let skipCount = 0;
+    for (let i = 1; i < records.length; i++) {
+        const cols = records[i];
+        const userId = cols[userIdIdx];
+        const username = cols[usernameIdx];
+        if (!userId || !username) { skipCount++; continue; }
+        rows.push({
+            user_id: userId,
+            username: username,
+            email: emailIdx >= 0 ? (cols[emailIdx] || '') : '',
+            user_type: typeIdx >= 0 ? (cols[typeIdx] || 'regular') : 'regular'
+        });
+    }
+
+    if (rows.length === 0) { showToast('没有可导入的有效用户', 'error'); return; }
+
+    const previewRows = rows.slice(0, 20).map(r => {
+        const typeLabel = r.user_type === 'admin' ? '管理员' : '普通用户';
+        return `<tr><td>${escapeHtml(r.user_id)}</td><td>${escapeHtml(r.username)}</td><td>${escapeHtml(r.email || '-')}</td><td>${typeLabel}</td></tr>`;
+    }).join('');
+
+    let body = `<p style="margin-bottom: 12px;">共解析 <strong>${rows.length}</strong> 个用户，以下为前20条预览：</p>`;
+    if (skipCount > 0) body += `<p style="color: #e67e22; margin-bottom: 12px;">跳过 ${skipCount} 条格式不完整的记录</p>`;
+    body += `<table style="width:100%;font-size:13px;"><thead><tr><th>编号</th><th>姓名</th><th>邮箱</th><th>类型</th></tr></thead><tbody>${previewRows}</tbody></table>`;
+    if (rows.length > 20) body += `<p style="margin-top: 8px; color: var(--text-light);">... 还有 ${rows.length - 20} 个用户未显示</p>`;
+
+    openModal('批量导入预览', body, '确认无误后点击导入', async () => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/management/users/batch_import', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message, 'success');
+            loadUsers();
+        } else {
+            showToast(data.message || '导入失败', 'error');
+        }
+    }, false);
+}
+
+function exportUsers() {
+    window.location.href = '/api/management/users/export';
+}
+
+async function loadSettings() {
+    const res = await apiRequest('/api/management/system_config');
+    if (res.success) {
+        const config = res.config;
+        document.getElementById('settingStartTime').value = config.attendance_start_time || '06:00';
+        document.getElementById('settingEndTime').value = config.attendance_end_time || '23:30';
+        document.getElementById('settingInterval').value = config.attendance_interval_seconds;
+        const totalSecs = config.session_expire_seconds || 30 * 24 * 3600;
+        const days = Math.floor(totalSecs / 86400);
+        const hours = Math.floor((totalSecs % 86400) / 3600);
+        const minutes = Math.floor((totalSecs % 3600) / 60);
+        document.getElementById('settingSessionDays').value = days;
+        document.getElementById('settingSessionHours').value = hours;
+        document.getElementById('settingSessionMinutes').value = minutes;
+        document.getElementById('settingReminderMinutes').value = config.attendance_reminder_minutes || 0;
+        document.getElementById('settingEmailEnabled').checked = config.email_enabled;
+        document.getElementById('settingEmailTimeStart').value = config.email_time_start || '06:00';
+        document.getElementById('settingEmailTimeEnd').value = config.email_time_end || '23:59';
+        document.getElementById('settingAdminEmail').value = config.admin_email || '';
+        document.getElementById('settingSenderAddress').value = config.sender_address || '';
+        document.getElementById('settingSenderName').value = config.sender_name || '';
+        document.getElementById('settingSmtpUsername').value = config.smtp_username || '';
+        document.getElementById('settingSmtpPassword').value = config.smtp_password || '';
+        document.getElementById('settingSmtpHost').value = config.smtp_host || '';
+        document.getElementById('settingSmtpPort').value = config.smtp_port;
+        document.getElementById('settingAllowedIpRanges').value = config.allowed_ip_ranges || '';
+        // 排行参与用户
+        window.rankingIncludeUsers = config.ranking_include_users || [];
+        updateRankingUserSummary();
+    }
+}
+
+async function saveSettings() {
+    const startTime = document.getElementById('settingStartTime').value;
+    const endTime = document.getElementById('settingEndTime').value;
+
+    const data = {
+        attendance_start_time: startTime,
+        attendance_end_time: endTime,
+        attendance_interval_seconds: parseInt(document.getElementById('settingInterval').value),
+        session_expire_seconds: (() => {
+            const d = parseInt(document.getElementById('settingSessionDays').value) || 0;
+            const h = parseInt(document.getElementById('settingSessionHours').value) || 0;
+            const m = parseInt(document.getElementById('settingSessionMinutes').value) || 0;
+            return d * 86400 + h * 3600 + m * 60;
+        })(),
+        attendance_reminder_minutes: parseInt(document.getElementById('settingReminderMinutes').value) || 0,
+        email_enabled: document.getElementById('settingEmailEnabled').checked,
+        email_time_start: document.getElementById('settingEmailTimeStart').value,
+        email_time_end: document.getElementById('settingEmailTimeEnd').value,
+        admin_email: document.getElementById('settingAdminEmail').value,
+        sender_address: document.getElementById('settingSenderAddress').value,
+        sender_name: document.getElementById('settingSenderName').value,
+        smtp_username: document.getElementById('settingSmtpUsername').value,
+        smtp_password: (() => {
+            const pwd = document.getElementById('settingSmtpPassword').value;
+            return (pwd && pwd !== '******') ? pwd : null;
+        })(),
+        smtp_host: document.getElementById('settingSmtpHost').value,
+        smtp_port: parseInt(document.getElementById('settingSmtpPort').value),
+        allowed_ip_ranges: document.getElementById('settingAllowedIpRanges').value,
+        ranking_include_users: window.rankingIncludeUsers || []
+    };
+
+    const res = await apiRequest('/api/management/system_config', {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+
+    if (res.success) {
+        showToast('保存成功', 'success');
+    }
+}
+
+async function testEmail() {
+    const res = await apiRequest('/api/management/system_config/test_email', { method: 'POST' });
+
+    if (res.success) {
+        showToast('测试邮件已发送到管理员邮箱', 'success');
+    } else {
+        showToast(res.message || '发送失败', 'error');
+    }
+}
+
+function logout() {
+    window.location.href = '/logout';
+}
+
+function updateRankingUserSummary() {
+    const summary = document.getElementById('rankingUserSummary');
+    const users = window.rankingIncludeUsers || [];
+    if (users.length === 0) {
+        summary.innerHTML = '全部用户参与（默认不包含管理员和锁定/禁用用户，可手动选择覆盖）';
+    } else {
+        summary.innerHTML = `已选择 <strong>${users.length}</strong> 位用户参与排行（以实际选择为准）`;
+    }
+}
+
+async function showRankingUserSelect() {
+    const usersRes = await apiRequest('/api/management/users');
+    const allUsers = usersRes.users || [];
+
+    // 存储全局数据供分页使用
+    window._rankingAllUsers = allUsers;
+    const currentSetting = window.rankingIncludeUsers || [];
+    if (currentSetting.length > 0) {
+        // 已有显式设置 → 勾选已保存的用户
+        window._rankingSelection = new Set(currentSetting);
+    } else {
+        // 默认模式 → 自动勾选所有默认参与用户（排除管理员和锁定/禁用）
+        window._rankingSelection = new Set();
+        allUsers.forEach(u => {
+            const isAdmin = u.user_type === 'admin' || u.user_type === 'super_admin';
+            const isExcluded = u.status === 'locked' || u.status === 'disabled';
+            if (!isAdmin && !isExcluded) {
+                window._rankingSelection.add(u.user_id);
+            }
+        });
+    }
+    window._rankingSearchKeyword = '';
+
+    openModal(
+        '选择排行参与用户',
+        `<div style="margin-bottom: 12px;">
+            <input type="text" id="rankingSearchInput" placeholder="搜索姓名或账号..."
+                   style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 14px;"
+                   oninput="rankingSearchInput()">
+        </div>
+        <div id="rankingUserList"></div>`,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="saveRankingUsers()">确定</button>`,
+        null, false
+    );
+
+    renderRankingUserPage(1);
+}
+
+function renderRankingUserPage(page, filter) {
+    const allUsers = window._rankingAllUsers || [];
+    const selection = window._rankingSelection || new Set();
+    const keyword = (typeof filter === 'string' ? filter : window._rankingSearchKeyword || '').toLowerCase().trim();
+    window._rankingSearchKeyword = keyword;
+    window._rankingCurrentPage = page;
+
+    // 搜索过滤
+    let filteredUsers = allUsers;
+    if (keyword) {
+        filteredUsers = allUsers.filter(u =>
+            u.username.toLowerCase().includes(keyword) ||
+            u.user_id.toLowerCase().includes(keyword)
+        );
+    }
+
+    const pageSize = 10;
+    const totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+    page = Math.min(page, totalPages);
+    const start = (page - 1) * pageSize;
+    const pageUsers = filteredUsers.slice(start, start + pageSize);
+
+    let userTableRows = pageUsers.map(u => {
+        const isAdmin = u.user_type === 'admin' || u.user_type === 'super_admin';
+        const isLockedOrDisabled = u.status === 'locked' || u.status === 'disabled';
+        const checked = selection.has(u.user_id) ? 'checked' : '';
+        let tags = [];
+        if (isAdmin) tags.push('<span class="tag-admin">管理</span>');
+        else tags.push('<span class="tag-admin">普通</span>');
+        if (isLockedOrDisabled) tags.push('<span style="background: var(--danger); color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 11px;">锁定/禁用</span>');
+        return `<tr>
+            <td style="width: 50px; text-align: center; padding: 8px 10px;">
+                <input type="checkbox" name="rankingUser" value="${u.user_id}" ${checked} onchange="rankingCheckChange(this)" style="width: auto; margin: 0;">
+            </td>
+            <td style="padding: 8px 10px; font-size: 14px;">${escapeHtml(u.username)}</td>
+            <td style="padding: 8px 10px; font-size: 14px;">${u.user_id}</td>
+            <td style="width: 120px; padding: 8px 10px; font-size: 14px;">${tags.join(' ')}</td>
+        </tr>`;
+    }).join('');
+
+    if (!userTableRows) {
+        userTableRows = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-light);">无匹配用户</td></tr>';
+    }
+
+    // 分页控件
+    let paginationHtml = '';
+    if (totalPages > 1) {
+        paginationHtml = `<div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px;">`;
+        if (page > 1) {
+            paginationHtml += `<button class="btn btn-tiny btn-secondary" onclick="renderRankingUserPage(${page - 1})">&laquo; 上一页</button>`;
+        }
+        paginationHtml += `<span style="color: var(--text-light);">第 ${page}/${totalPages} 页，共 ${filteredUsers.length} 条</span>`;
+        if (page < totalPages) {
+            paginationHtml += `<button class="btn btn-tiny btn-secondary" onclick="renderRankingUserPage(${page + 1})">下一页 &raquo;</button>`;
+        }
+        paginationHtml += `</div>`;
+    }
+
+    // 只更新列表区域，不重建搜索框（避免焦点丢失）
+    document.getElementById('rankingUserList').innerHTML = `
+        <div style="border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--bg-gray);">
+                        <th style="width: 50px; text-align: center; padding: 10px; font-weight: 500; font-size: 14px;">
+                            <input type="checkbox" id="rankingSelectAll" onchange="rankingToggleAll(this.checked)" style="width: auto; margin: 0;">
+                        </th>
+                        <th style="padding: 10px; text-align: left; font-weight: 500; font-size: 14px;">姓名</th>
+                        <th style="padding: 10px; text-align: left; font-weight: 500; font-size: 14px;">账号</th>
+                        <th style="width: 120px; padding: 10px; text-align: left; font-weight: 500; font-size: 14px;">类型/状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${userTableRows}
+                </tbody>
+            </table>
+            ${paginationHtml}
+        </div>
+    `;
+}
+
+function rankingSearchInput() {
+    window._rankingSearchKeyword = document.getElementById('rankingSearchInput').value;
+    renderRankingUserPage(1);
+}
+
+function rankingCheckChange(cb) {
+    if (cb.checked) {
+        window._rankingSelection.add(cb.value);
+    } else {
+        window._rankingSelection.delete(cb.value);
+        const selectAll = document.getElementById('rankingSelectAll');
+        if (selectAll) selectAll.checked = false;
+    }
+}
+
+function rankingToggleAll(checked) {
+    const pageSize = 10;
+    // 仅切换当前页的复选框
+    document.querySelectorAll('input[name="rankingUser"]').forEach(cb => {
+        cb.checked = checked;
+        if (checked) {
+            window._rankingSelection.add(cb.value);
+        } else {
+            window._rankingSelection.delete(cb.value);
+        }
+    });
+}
+
+function saveRankingUsers() {
+    window.rankingIncludeUsers = Array.from(window._rankingSelection || []);
+    updateRankingUserSummary();
+    closeModal();
+    showToast('排行用户已更新，请点击"保存设置"生效', 'success');
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadCurrentUser();
+    await loadRecords();
+});
+</script>
+{% endblock %}

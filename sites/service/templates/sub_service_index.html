@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT 认证测试子服务</title>
+    <style>
+        :root {
+            --primary-color: #005a8c;
+            --secondary-color: #4285f4;
+            --accent-color: #34a853;
+            --danger-color: #dc3545;
+            --warning-color: #f59e0b;
+            --text-dark: #202124;
+            --text-light: #5f6368;
+            --bg-gray: #f8f9fa;
+            --border-color: #dadce0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+        h1 { color: var(--primary-color); text-align: center; }
+        h2 { color: var(--text-dark); border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: var(--bg-gray);
+            border-left: 4px solid var(--border-color);
+        }
+        .step.success { border-left-color: var(--accent-color); background: #e8f5e9; }
+        .step.error { border-left-color: var(--danger-color); background: #ffebee; }
+        .step.pending { border-left-color: var(--warning-color); background: #fff8e1; }
+
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .step.success .step-number { background: var(--accent-color); }
+        .step.error .step-number { background: var(--danger-color); }
+        .step.pending .step-number { background: var(--warning-color); }
+
+        .step-content { flex: 1; }
+        .step-title { font-weight: bold; margin-bottom: 5px; }
+        .step-detail { color: var(--text-light); font-size: 14px; }
+
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover { background: #004c82; }
+        button:disabled { background: var(--text-light); cursor: not-allowed; }
+        button.secondary { background: var(--bg-gray); color: var(--text-dark); border: 1px solid var(--border-color); }
+        button.secondary:hover { background: #e8e8e8; }
+
+        .user-info {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .user-info dt { font-weight: bold; color: var(--text-light); }
+        .user-info dd { margin: 0; color: var(--text-dark); }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .flow-item {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .flow-arrow { color: var(--text-light); font-size: 20px; }
+
+        #result { margin-top: 20px; }
+        .status { text-align: center; font-size: 18px; margin: 20px 0; }
+        .status.success { color: var(--accent-color); }
+        .status.error { color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <h1>JWT 认证测试子服务</h1>
+
+    <div class="card">
+        <h2>认证流程</h2>
+        <div class="flow">
+            <div class="flow-item">1. 用户在 Portal 登录</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">2. 前端直接向 Portal 请求签名（带 Cookie）</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">3. Portal 验证会话签发 JWT</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">4. 子服务后端向 Portal 验证 JWT</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">5. 获取用户身份</div>
+        </div>
+        <p style="color: var(--text-light); font-size: 13px; margin-top: 10px;">
+        <strong>注意</strong>：首次访问时，如果用户在 Portal 未登录，会自动跳转到 Portal 登录页，登录后自动返回并完成认证。
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>步骤 1: 请求 JWT 签名</h2>
+        <p class="step-detail">前端直接向 Portal /api/jwt/sign 发起请求（带 Cookie）</p>
+        <button onclick="requestJwtSign()" id="btn-sign">请求签名</button>
+        <div id="step1-result"></div>
+    </div>
+
+    <div class="card">
+        <h2>步骤 2: 验证 JWT（后端到 Portal）</h2>
+        <p class="step-detail">子服务后端向 Portal /api/jwt/verify 发起请求（确保 Token 真实性）</p>
+        <button onclick="verifyJwt()" id="btn-verify" disabled>验证 Token</button>
+        <div id="step2-result"></div>
+    </div>
+
+    <div class="card">
+        <h2>步骤 3: 本地验证 JWT</h2>
+        <p class="step-detail">使用相同密钥在本地验证 Token</p>
+        <button onclick="verifyJwtLocal()" id="btn-verify-local" disabled>本地验证</button>
+        <div id="step3-result"></div>
+    </div>
+
+    <div class="card">
+        <h2>最终结果</h2>
+        <div id="final-result" class="status"></div>
+        <div id="final-user-info"></div>
+    </div>
+
+    <script>
+        let currentToken = null;
+        let userInfo = null;
+        const PORTAL_URL = 'https://service.starclub.example.com';
+
+        // 页面加载时自动尝试认证
+        window.onload = async function() {
+            // 优先从 URL 参数获取交换码（Portal OAuth 回调后附带的）
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeFromUrl = urlParams.get('code');
+
+            if (codeFromUrl) {
+                // 清理 URL 中的 code 参数（美观 + 安全）
+                window.history.replaceState({}, '', window.location.pathname);
+
+                showStepResult('step1-result', 'pending', '1', '交换中...', '通过子服务后端向 Portal 换取 JWT...');
+
+                try {
+                    const exchangeRes = await fetch('/api/auth/exchange', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: codeFromUrl })
+                    });
+                    const exchangeData = await exchangeRes.json();
+
+                    if (exchangeData.success) {
+                        currentToken = exchangeData.token;
+                        document.getElementById('btn-verify').disabled = false;
+                        document.getElementById('btn-verify-local').disabled = false;
+
+                        showStepResult('step1-result', 'success', '1', '✓ 已获取 JWT', '通过一次性交换码换取 JWT，个人信息不出现在 URL 中', {});
+                        await verifyJwt();
+                        await verifyJwtLocal();
+                        return;
+                    } else {
+                        showStepResult('step1-result', 'error', '1', '✗ 交换失败', exchangeData.message);
+                    }
+                } catch (e) {
+                    showStepResult('step1-result', 'error', '1', '✗ 交换请求失败', e.message);
+                }
+                return;
+            }
+
+            // 兜底：尝试通过 Cookie 签名（用户已在 Portal 登录过）
+            const result = await ensureAuth();
+            if (result.success) {
+                currentToken = result.token;
+                document.getElementById('btn-verify').disabled = false;
+                document.getElementById('btn-verify-local').disabled = false;
+                await verifyJwt();
+                await verifyJwtLocal();
+            }
+        };
+
+        // 确保用户已认证，未认证则重定向到 Portal 登录
+        async function ensureAuth() {
+            try {
+                const response = await fetch(`${PORTAL_URL}/api/jwt/sign`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    return { success: true, token: data.token };
+                }
+                // 签名失败（401 未登录等），重定向
+                redirectToPortalLogin();
+                return { success: false };
+            } catch (e) {
+                // 网络错误，重定向
+                redirectToPortalLogin();
+                return { success: false };
+            }
+        }
+
+        // 重定向到 Portal 登录，登录后返回当前页面
+        function redirectToPortalLogin() {
+            const returnUrl = encodeURIComponent(window.location.href);
+            window.location.href = `${PORTAL_URL}/login?next=${returnUrl}`;
+        }
+
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+
+        function showStepResult(elementId, stepClass, number, title, detail, jsonData) {
+            const html = `
+                <div class="step ${stepClass}">
+                    <div class="step-number">${number}</div>
+                    <div class="step-content">
+                        <div class="step-title">${title}</div>
+                        <div class="step-detail">${detail}</div>
+                        ${jsonData ? `<pre>${formatJSON(jsonData)}</pre>` : ''}
+                    </div>
+                </div>
+            `;
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        async function requestJwtSign() {
+            showStepResult('step1-result', 'pending', '1', '签名请求中...', '前端直接向 Portal /api/jwt/sign 发起请求（带 Cookie）...');
+
+            try {
+                // 前端直接请求 Portal，带上 Cookie（这样 Portal 才能识别当前登录用户）
+                const response = await fetch(`${PORTAL_URL}/api/jwt/sign`, {
+                    method: 'POST',
+                    credentials: 'include'  // 携带 Cookie
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentToken = data.token;
+                    showStepResult('step1-result', 'success', '1', '✓ 签名成功', `Token 长度: ${currentToken.length} 字符（由 Portal 签发）`, data);
+                    document.getElementById('btn-verify').disabled = false;
+                    document.getElementById('btn-verify-local').disabled = false;
+                } else {
+                    showStepResult('step1-result', 'error', '1', '✗ 签名失败', data.message || '签发 Token 失败');
+                }
+            } catch (e) {
+                showStepResult('step1-result', 'error', '1', '✗ 请求失败', e.message);
+            }
+        }
+
+        async function verifyJwt() {
+            if (!currentToken) {
+                alert('请先获取 Token');
+                return;
+            }
+
+            showStepResult('step2-result', 'pending', '2', '验证中...', '子服务后端向 Portal /api/jwt/verify 发起请求（确保 Token 真实性）...');
+
+            try {
+                // 子服务后端向 Portal 验证 Token
+                const response = await fetch('/api/jwt/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: currentToken })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showStepResult('step2-result', 'success', '2', '✓ 验证成功', '通过 Portal 接口验证 Token 有效（防伪造）', data);
+                } else {
+                    showStepResult('step2-result', 'error', '2', '✗ 验证失败', data.message || 'Token 验证失败');
+                }
+            } catch (e) {
+                showStepResult('step2-result', 'error', '2', '✗ 请求失败', e.message);
+            }
+        }
+
+        async function verifyJwtLocal() {
+            if (!currentToken) {
+                alert('请先获取 Token');
+                return;
+            }
+
+            showStepResult('step3-result', 'pending', '3', '本地验证中...', '使用相同密钥在本地验证...');
+
+            try {
+                const response = await fetch('/api/jwt/verify/local', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: currentToken })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showStepResult('step3-result', 'success', '3', '✓ 本地验证成功', 'JWT 签名验证通过', data);
+                    showFinalResult(true, data.payload);
+                } else {
+                    showStepResult('step3-result', 'error', '3', '✗ 本地验证失败', data.message);
+                    showFinalResult(false, null);
+                }
+            } catch (e) {
+                showStepResult('step3-result', 'error', '3', '✗ 验证失败', e.message);
+            }
+        }
+
+        function showFinalResult(success, payload) {
+            const statusEl = document.getElementById('final-result');
+            const infoEl = document.getElementById('final-user-info');
+
+            if (success) {
+                statusEl.className = 'status success';
+                statusEl.textContent = '✓ JWT 认证流程验证成功！';
+
+                infoEl.innerHTML = `
+                    <h3>用户身份信息（从 JWT Payload 解码）</h3>
+                    <dl class="user-info">
+                        <dt>用户ID:</dt><dd>${payload.user_id}</dd>
+                        <dt>用户名:</dt><dd>${payload.username}</dd>
+                        <dt>邮箱:</dt><dd>${payload.email || '(无)'}</dd>
+                        <dt>用户类型:</dt><dd>${payload.user_type}</dd>
+                        <dt>签发时间:</dt><dd>${new Date(payload.iat * 1000).toLocaleString()}</dd>
+                        <dt>过期时间:</dt><dd>${new Date(payload.exp * 1000).toLocaleString()}</dd>
+                    </dl>
+                `;
+            } else {
+                statusEl.className = 'status error';
+                statusEl.textContent = '✗ JWT 认证失败';
+                infoEl.innerHTML = '';
+            }
+        }
+
+
+    </script>
+</body>
+</html>

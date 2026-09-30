@@ -1,0 +1,26 @@
+{
+  "port": 10242,
+  "session_expire_seconds": 2592000,
+  "attendance": {
+    "start_time": "06:00",
+    "end_time": "23:30",
+    "interval_seconds": 15,
+    "reminder_minutes": 30
+  },
+  "email": {
+    "enabled": false,
+    "time_start": "06:00",
+    "time_end": "23:59",
+    "admin_email": "notify@example.com",
+    "sender_address": "notify@example.com",
+    "sender_name": "StarClub | 星社出勤",
+    "smtp_username": "notify@example.com",
+    "smtp_password": "",
+    "smtp_host": "smtp.example.com",
+    "smtp_port": 465
+  },
+  "portal_url": "https://portal.example.com",
+  "service_port": 10241,
+  "allowed_ip_ranges": "192.168.0.0/24,192.168.1.x",
+  "ranking_include_users": []
+}

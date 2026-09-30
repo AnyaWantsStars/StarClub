@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarClub | 登录</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/starclub.png" type="image/png">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <img src="/static/starclub.png" alt="Logo" class="login-logo" onerror="this.style.display='none'">
+            <h2>StarClub | 服务平台</h2>
+            <p class="login-subtitle">星社</p>
+
+            {% if error %}
+            <div class="login-error">{{ error }}</div>
+            {% endif %}
+
+            <div class="login-action-area">
+                {% if oauth_enabled %}
+                <div class="btn-login-area">
+                    {% if error %}
+                    <a href="/login" class="btn-login btn-block">重新登录</a>
+                    {% else %}
+                    <a href="/login{% if next %}?next={{ next | urlencode }}{% endif %}" class="btn-login btn-block" id="loginBtn">通过 Nextcloud 登录</a>
+                    {% endif %}
+                </div>
+                <div class="login-spinner-area" id="loginSpinner">
+                    <div class="spinner spinner-white" style="margin-bottom:16px;"></div>
+                    <p style="color:var(--text-light);font-size:14px;">正在跳转至认证服务...</p>
+                </div>
+                {% else %}
+                <div class="btn-login-area">
+                    <p style="color:var(--text-light);font-size:14px;">OAuth 2.0 认证暂未启用</p>
+                    <p style="color:var(--text-light);font-size:12px;margin-top:8px;">请联系管理员配置 Nextcloud OAuth 2.0</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if oauth_enabled and not error %}
+    <script>
+        document.getElementById('loginBtn').addEventListener('click', function(e) {
+            document.querySelector('.btn-login-area').classList.add('hidden');
+            document.getElementById('loginSpinner').classList.add('active');
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

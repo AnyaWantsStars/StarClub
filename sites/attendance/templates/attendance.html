@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+{% block title %}StarClub | 星社出勤{% endblock %}
+{% block body %}
+<div class="main-container">
+<div class="header">
+    <div class="header-inner">
+        <div class="header-left">
+            <img src="/static/starclub-white.png" alt="Logo" style="width: 40px; height: 40px;">
+            <span class="header-title">StarClub | 星社出勤</span>
+        </div>
+        <div class="header-right">
+            <span id="currentUsername"></span>
+            <span id="currentStatusLabel" class="{{ 'status-online' if current_status == 'online' else 'status-offline' }}">{{ '在线' if current_status == 'online' else '离线' }}</span>
+            <button id="adminBtn" class="header-btn" onclick="location.href='/management'" style="display: none;">管理后台</button>
+        <button class="header-btn" onclick="logout()">退出</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    {% if not has_email %}
+    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin-bottom: 20px; text-align: center;">
+        <span style="color: #856404;">请先填写邮箱，以便接收出勤通知</span>
+        <button class="btn btn-primary btn-tiny" style="margin-left: 10px;" onclick="showProfileModal()">去填写</button>
+    </div>
+    {% endif %}
+    <div class="date-display">{{ current_date }}</div>
+    <div class="weekday-display">{{ week_day }}</div>
+    <div class="time-display" id="clock">{{ current_time }}</div>
+
+    <div style="text-align: center; margin-bottom: 30px;">
+        <button class="check-btn {{ 'check-in' if current_status == 'offline' else 'check-out' }}"
+                id="checkBtn"
+                onclick="handleCheck()"
+                {{ 'disabled' if not is_within_hours or not can_action }}>
+            {{ '签到' if current_status == 'offline' else '签退' }}
+        </button>
+        <p style="color: var(--text-light); font-size: 14px;" id="statusText">
+            {% if not is_within_hours %}不在出勤时间内{% endif %}
+            {% if not can_action %}操作过于频繁{% endif %}
+        </p>
+        {% if current_record %}
+        <p style="color: var(--text-light); font-size: 14px;">
+            签到时间：{{ current_record.check_in }}
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title">在线成员 <span id="onlineCount" style="font-size: 14px; color: var(--text-light);"></span></div>
+        <div id="onlinePanel">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">我的出勤记录</div>
+        <div id="recordsPanel">
+            <div class="loading">加载中...</div>
+        </div>
+        <div style="text-align: center; margin-top: 15px;">
+            <button class="btn btn-secondary" onclick="showAllRecords()">查看更多</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">出勤排行</div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchRankingTab('week', this)">周排行</div>
+            <div class="tab" onclick="switchRankingTab('month', this)">月排行</div>
+            <div class="tab" onclick="switchRankingTab('semester', this)">学期排行</div>
+        </div>
+        <div id="rankingPanel">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+        <button class="btn btn-primary" onclick="refreshData()">刷新数据</button>
+        <button class="btn btn-secondary" onclick="showPublications()" style="margin-left: 15px;">出勤公示</button>
+    </div>
+</div>
+</div>
+
+<div class="footer">
+    <div class="footer-inner">
+        <p>&copy; 2025-<span id="currentYear"></span> 星社. All rights reserved.</p>
+    </div>
+</div>
+
+<div id="modalOverlay" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle"></h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer" id="modalFooter"></div>
+    </div>
+</div>
+
+<script>
+let currentUser = null;
+let currentRankingPeriod = 'week';
+let allRecords = [];
+
+async function loadCurrentUser() {
+    const res = await apiRequest('/api/current_user');
+    if (res.success) {
+        currentUser = res.user;
+        document.getElementById('currentUsername').textContent = currentUser.username;
+        const adminBtn = document.getElementById('adminBtn');
+        if (adminBtn) {
+            adminBtn.style.display = (currentUser.user_type === 'admin' || currentUser.user_type === 'super_admin') ? 'inline-block' : 'none';
+        }
+    }
+}
+
+async function handleCheck() {
+    const isOnline = document.getElementById('checkBtn').classList.contains('check-out');
+    const url = isOnline ? '/api/attendance/check_out' : '/api/attendance/check_in';
+    const res = await apiRequest(url, { method: 'POST' });
+    if (res.success) {
+        showToast(isOnline ? '签退成功' : '签到成功', 'success');
+        location.reload();
+    }
+}
+
+async function loadOnlineUsers() {
+    if (!currentUser) {
+        await loadCurrentUser();
+    }
+    const res = await apiRequest('/api/attendance/online');
+    const panel = document.getElementById('onlinePanel');
+    const countSpan = document.getElementById('onlineCount');
+    const count = res.online_users.length;
+    countSpan.textContent = `（${count}人）`;
+
+    if (res.success && res.online_users.length > 0) {
+        let html = '<table><thead><tr><th>姓名</th><th>签到时间</th><th>操作</th></tr></thead><tbody>';
+        res.online_users.forEach(user => {
+            const isSelf = user.user_id === currentUser?.user_id;
+            html += `<tr>
+                <td>${escapeHtml(user.username)}${isSelf ? ' <span class="status-online">我</span>' : ''}</td>
+                <td>${formatDateTime(user.check_in)}</td>
+                <td>${isSelf ? '-' : `<button class="btn btn-tiny btn-delete" onclick="reportUser('${user.user_id}', '${escapeHtml(user.username)}', '${user.check_in}', '${user.record_id}')">举报</button>`}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        panel.innerHTML = html;
+    } else {
+        panel.innerHTML = '<div class="empty-state">当前没有在线成员</div>';
+    }
+}
+
+async function reportUser(userId, username, checkInTime, recordId) {
+    const bodyContent = `
+        <p>确定要举报 <strong>${escapeHtml(username)}</strong> 吗？</p>
+        <p style="color: var(--text-light); font-size: 12px;">签到时间：${checkInTime}</p>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>举报理由（可选）</label>
+            <textarea id="reportReason" placeholder="请输入举报理由"></textarea>
+        </div>
+        <div class="form-group">
+            <label>上传凭证（可选，限5MB）</label>
+            <input type="file" id="reportImage" accept="image/*">
+        </div>
+    `;
+    openModal(
+        '举报',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitReport('${userId}', '${escapeHtml(username)}', '${recordId}')">提交举报</button>`,
+        null, false
+    );
+}
+
+async function submitReport(reportedId, reportedName, recordId) {
+    const reason = document.getElementById('reportReason').value.trim();
+    const imageFile = document.getElementById('reportImage').files[0];
+    let evidence_images = [];
+    if (imageFile) {
+        const url = await uploadImage(imageFile);
+        if (url) evidence_images.push(url);
+    }
+    const res = await apiRequest('/api/attendance/report', {
+        method: 'POST',
+        body: JSON.stringify({
+            reported_id: reportedId,
+            reported_name: reportedName,
+            record_id: recordId,
+            reason: reason,
+            evidence_images: evidence_images
+        })
+    });
+    if (res.success) {
+        showToast('举报已提交', 'success');
+        closeModal();
+        loadOnlineUsers();
+    }
+}
+
+async function loadMyRecords() {
+    const res = await apiRequest('/api/attendance/my_records');
+    const panel = document.getElementById('recordsPanel');
+    if (res.success) {
+        allRecords = res.all_records;
+        renderRecentRecords(res.recent_records);
+    }
+}
+
+function renderRecentRecords(records) {
+    const panel = document.getElementById('recordsPanel');
+    if (records.length === 0) {
+        panel.innerHTML = '<div class="empty-state">暂无出勤记录</div>';
+        return;
+    }
+
+    let html = '<table><thead><tr><th>日期</th><th>签到时间</th><th>签退时间</th><th>时长</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+    records.forEach(r => {
+        let action = '';
+        if (r.appeal) {
+            const statusMap = {'pending': '待处理', 'valid': '已通过', 'invalid': '已拒绝'};
+            action = `<span class="status-${r.appeal.status}">${statusMap[r.appeal.status] || r.appeal.status}</span>`;
+        } else if (r.status === 'invalid') {
+            action = `<button class="btn btn-tiny btn-edit" onclick="appealRecord('${r.record_id}', '${r.check_in}', '${r.check_out || ''}')">申诉</button>`;
+        }
+        html += `<tr>
+            <td>${r.check_in.substring(0, 10)}</td>
+            <td>${r.check_in.substring(11, 19)}</td>
+            <td>${r.check_out ? r.check_out.substring(11, 19) : '-'}</td>
+            <td>${formatDuration(r.duration_minutes)}</td>
+            <td class="status-${r.status}">${r.status === 'valid' ? '有效' : '无效'}</td>
+            <td>${action}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    panel.innerHTML = html;
+}
+
+function showAllRecords() {
+    const pageSize = 10;
+    let currentPage = 1;
+    const totalPages = Math.ceil(allRecords.length / pageSize);
+
+    function renderPage(page) {
+        const start = (page - 1) * pageSize;
+        const pageRecords = allRecords.slice(start, start + pageSize);
+
+        let bodyContent = `<div style="max-height: 400px; overflow-y: auto;">
+            <table style="width: 100%;"><thead><tr><th>日期</th><th>签到时间</th><th>签退时间</th><th>时长</th><th>状态</th><th>操作</th></tr></thead><tbody>`;
+        pageRecords.forEach(r => {
+            let action = '';
+            if (r.appeal) {
+                const statusMap = {'pending': '待处理', 'valid': '已通过', 'invalid': '已拒绝'};
+                action = `<span class="status-${r.appeal.status}">${statusMap[r.appeal.status] || r.appeal.status}</span>`;
+            } else if (r.status === 'invalid') {
+                action = `<button class="btn btn-tiny btn-edit" onclick="appealRecord('${r.record_id}', '${r.check_in}', '${r.check_out || ''}')">申诉</button>`;
+            }
+            bodyContent += `<tr>
+                <td>${r.check_in.substring(0, 10)}</td>
+                <td>${r.check_in.substring(11, 19)}</td>
+                <td>${r.check_out ? r.check_out.substring(11, 19) : '-'}</td>
+                <td>${formatDuration(r.duration_minutes)}</td>
+                <td class="status-${r.status}">${r.status === 'valid' ? '有效' : '无效'}</td>
+                <td>${action}</td>
+            </tr>`;
+        });
+        bodyContent += '</tbody></table></div>';
+
+        // 分页导航
+        if (totalPages > 1) {
+            bodyContent += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                <span>共${allRecords.length}条，第${page}/${totalPages}页</span>
+                <button class="btn btn-tiny" onclick="goToPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                <input type="number" id="pageInput" value="${page}" min="1" max="${totalPages}" style="width: 60px; text-align: center;" onchange="goToPage(parseInt(this.value))">
+                <button class="btn btn-tiny" onclick="goToPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+            </div>`;
+        }
+        return bodyContent;
+    }
+
+    function goToPage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        document.getElementById('modalBody').innerHTML = renderPage(page);
+        lockModalHeight();
+    }
+
+    window.goToPage = goToPage;
+    openModal('全部出勤记录', renderPage(1), '<button class="btn btn-secondary" onclick="closeModal()">关闭</button>');
+    lockModalHeight();
+}
+
+function appealRecord(recordId, checkIn, checkOut) {
+    closeModal();
+    const bodyContent = `
+        <p>签到时间：${checkIn}</p>
+        <p>签退时间：${checkOut || '未签退'}</p>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>签退时间（必填）</label>
+            <input type="datetime-local" id="appealCheckOut" value="${checkOut ? checkOut.substring(0, 16) : ''}">
+        </div>
+        <div class="form-group">
+            <label>申诉理由（可选）</label>
+            <textarea id="appealReason" placeholder="请输入申诉理由"></textarea>
+        </div>
+        <div class="form-group">
+            <label>上传凭证（可选，限5MB）</label>
+            <input type="file" id="appealImage" accept="image/*">
+        </div>
+    `;
+    openModal(
+        '申诉',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitAppeal('${recordId}')">提交申诉</button>`,
+        null, false
+    );
+}
+
+async function submitAppeal(recordId) {
+    const newCheckOut = document.getElementById('appealCheckOut').value;
+    const reason = document.getElementById('appealReason').value.trim();
+    if (!newCheckOut) {
+        showToast('请填写签退时间', 'error');
+        return;
+    }
+    const imageFile = document.getElementById('appealImage').files[0];
+    let evidence_images = [];
+    if (imageFile) {
+        const url = await uploadImage(imageFile);
+        if (url) evidence_images.push(url);
+    }
+    const res = await apiRequest('/api/attendance/appeal', {
+        method: 'POST',
+        body: JSON.stringify({
+            record_id: recordId,
+            new_check_out: newCheckOut,
+            reason: reason,
+            evidence_images: evidence_images
+        })
+    });
+    if (res.success) {
+        showToast('申诉已提交', 'success');
+        closeModal();
+        loadMyRecords();
+    }
+}
+
+async function uploadImage(file) {
+    if (!file) return null;
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+        return data.url;
+    } else {
+        showToast(data.message || '图片上传失败', 'error');
+        return null;
+    }
+}
+
+async function loadRankings(period) {
+    const res = await apiRequest(`/api/attendance/rankings?period=${period}`);
+    const panel = document.getElementById('rankingPanel');
+    if (res.success && res.rankings.length > 0) {
+        // 存储全部排行数据供分页使用
+        window.allRankings = res.rankings;
+        window.currentRankingPeriod = period;
+        renderRankingPage(1);
+    } else {
+        panel.innerHTML = '<div class="empty-state">暂无排行数据</div>';
+        window.allRankings = [];
+    }
+}
+
+function renderRankingPage(page) {
+    const pageSize = 10;
+    const panel = document.getElementById('rankingPanel');
+    const rankings = window.allRankings || [];
+    const totalPages = Math.ceil(rankings.length / pageSize);
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const pageRecords = rankings.slice(start, end);
+
+    let html = '<table><thead><tr><th>排名</th><th>姓名</th><th>出勤时长</th><th>操作</th></tr></thead><tbody>';
+    pageRecords.forEach(r => {
+        if (r.user_id !== currentUser?.user_id) {
+            html += `<tr>
+                <td>${r.rank}</td>
+                <td>${escapeHtml(r.username)}</td>
+                <td>${r.duration_str}</td>
+                <td><button class="btn btn-tiny btn-delete" onclick="reportRankingUser('${r.user_id}', '${escapeHtml(r.username)}')">举报</button></td>
+            </tr>`;
+        } else {
+            html += `<tr>
+                <td>${r.rank}</td>
+                <td>${escapeHtml(r.username)} <span style="color: var(--primary-color);">(我)</span></td>
+                <td>${r.duration_str}</td>
+                <td>-</td>
+            </tr>`;
+        }
+    });
+    html += '</tbody></table>';
+
+    // 分页导航
+    if (totalPages > 1) {
+        html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+            <span>共${rankings.length}条，第${page}/${totalPages}页</span>
+            <button class="btn btn-tiny" onclick="renderRankingPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+            <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 60px; text-align: center;" onchange="renderRankingPage(parseInt(this.value))">
+            <button class="btn btn-tiny" onclick="renderRankingPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+        </div>`;
+    }
+
+    panel.innerHTML = html;
+}
+
+function switchRankingTab(period, tabEl) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    loadRankings(period);
+}
+
+async function reportRankingUser(userId, username) {
+    const bodyContent = `
+        <p>确定要举报 <strong>${escapeHtml(username)}</strong> 吗？</p>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>举报理由（必填）</label>
+            <textarea id="reportReason" placeholder="请输入举报理由"></textarea>
+        </div>
+        <div class="form-group">
+            <label>上传凭证（可选，限5MB）</label>
+            <input type="file" id="reportImage" accept="image/*">
+        </div>
+    `;
+    openModal(
+        '举报',
+        bodyContent,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitRankingReport('${userId}', '${escapeHtml(username)}')">提交举报</button>`,
+        null, false
+    );
+}
+
+async function submitRankingReport(userId, username) {
+    const reason = document.getElementById('reportReason').value.trim();
+    if (!reason) {
+        showToast('请填写举报理由', 'error');
+        return;
+    }
+    const imageFile = document.getElementById('reportImage').files[0];
+    let evidence_images = [];
+    if (imageFile) {
+        const url = await uploadImage(imageFile);
+        if (url) evidence_images.push(url);
+    }
+    const res = await apiRequest('/api/attendance/report', {
+        method: 'POST',
+        body: JSON.stringify({
+            reported_id: userId,
+            reported_name: username,
+            reason: reason,
+            report_type: 'ranking',
+            evidence_images: evidence_images
+        })
+    });
+    if (res.success) {
+        showToast('举报已提交', 'success');
+        closeModal();
+    }
+}
+
+async function showPublications() {
+    const res = await apiRequest('/api/attendance/publications');
+    if (res.success && res.publications.length > 0) {
+        let bodyContent = '<div style="max-height: 400px; overflow-y: auto;">';
+        res.publications.forEach(p => {
+            bodyContent += `<div class="card" style="margin-bottom: 10px; cursor: pointer;" onclick="showPublicationDetail('${p.pub_id}')">
+                <h4 style="margin-bottom: 5px;">${escapeHtml(p.name)}</h4>
+                <p style="color: var(--text-light); font-size: 12px;">${p.start_date} 至 ${p.end_date}</p>
+            </div>`;
+        });
+        bodyContent += '</div>';
+        openModal('出勤公示', bodyContent, '<button class="btn btn-secondary" onclick="closeModal()">关闭</button>');
+    } else {
+        showToast('暂无出勤公示', 'info');
+    }
+}
+
+async function showPublicationDetail(pubId) {
+    const res = await apiRequest(`/api/attendance/publication/${pubId}`);
+    closeModal();
+    if (res.success) {
+        const pub = res.publication;
+        const allRankings = res.rankings || [];
+        const pageSize = 10;
+        const totalPages = Math.ceil(allRankings.length / pageSize) || 1;
+
+        function renderPage(page) {
+            const start = (page - 1) * pageSize;
+            const pageData = allRankings.slice(start, start + pageSize);
+
+            let html = `<h4 style="margin-bottom: 10px;">${escapeHtml(pub.name)}</h4>`;
+            html += '<table style="width: 100%;"><thead><tr><th>排名</th><th>姓名</th><th>出勤时长</th>' +
+                (pub.show_records ? '<th>操作</th>' : '') + '</tr></thead><tbody>';
+            pageData.forEach(r => {
+                html += `<tr><td>${r.rank}</td><td>${escapeHtml(r.username)}</td><td>${r.duration_str}</td>` +
+                        (pub.show_records ? `<td><button class="btn btn-tiny btn-secondary" onclick="viewPubRecords('${r.user_id}', '${escapeHtml(r.username)}', ${JSON.stringify(r.records || []).replace(/"/g, '&quot;')})">查看记录</button></td>` : '') +
+                        '</tr>';
+            });
+            html += '</tbody></table>';
+
+            if (totalPages > 1) {
+                html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                    <span>第${page}/${totalPages}页</span>
+                    <button class="btn btn-tiny" onclick="attShowPubGoTo(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                    <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="attShowPubGoTo(parseInt(this.value))">
+                    <button class="btn btn-tiny" onclick="attShowPubGoTo(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+                </div>`;
+            }
+            return html;
+        }
+
+        openModal('公示详情', renderPage(1), '<button class="btn btn-secondary" onclick="closeModal()">关闭</button>');
+        lockModalHeight();
+        window.attShowPubGoTo = (page) => {
+            if (page < 1 || page > totalPages) return;
+            document.getElementById('modalBody').innerHTML = renderPage(page);
+            lockModalHeight();
+        };
+    }
+}
+
+function viewPubRecords(userId, username, records) {
+    if (!records || records.length === 0) {
+        showToast('暂无出勤记录', 'info');
+        return;
+    }
+    const allRecords = records.sort((a, b) => a.check_in.localeCompare(b.check_in));
+    const totalMinutes = allRecords.reduce((sum, r) => sum + (r.duration_minutes || 0), 0);
+    const validCount = allRecords.filter(r => r.status === 'valid').length;
+    const totalCount = allRecords.length;
+    const validRate = totalCount > 0 ? ((validCount / totalCount) * 100).toFixed(1) : '0.0';
+    const totalHours = (totalMinutes / 60).toFixed(2);
+    const avgHours = validCount > 0 ? (totalMinutes / validCount / 60).toFixed(2) : '0.00';
+
+    const pageSize = 10;
+    const totalPages = Math.ceil(allRecords.length / pageSize);
+
+    function renderPage(page) {
+        const start = (page - 1) * pageSize;
+        const pageData = allRecords.slice(start, start + pageSize);
+
+        let rows = pageData.map(r => {
+            const date = r.check_in.substring(0, 10);
+            const timeIn = r.check_in.substring(11, 19);
+            const timeOut = r.check_out ? r.check_out.substring(11, 19) : '-';
+            const mins = r.duration_minutes;
+            const duration = mins != null ? `${(mins / 60).toFixed(2)}小时` : '-';
+            const statusLabel = r.status === 'valid' ? '有效' : '无效';
+            const statusColor = r.status === 'valid' ? '#1e7e34' : '#c5221f';
+            const statusBg = r.status === 'valid' ? '#e6f4ea' : '#fce8e6';
+            return `<tr>
+                <td>${date}</td>
+                <td>${timeIn}</td>
+                <td>${timeOut}</td>
+                <td>${duration}</td>
+                <td><span style="display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: ${statusColor}; background: ${statusBg};">${statusLabel}</span></td>
+            </tr>`;
+        }).join('');
+
+        let html = `
+        <h4 style="margin-bottom: 12px;">${escapeHtml(username)} 的出勤记录</h4>
+        <div style="display: flex; gap: 12px; margin-bottom: 15px; font-size: 13px; color: var(--text-light); flex-wrap: wrap;">
+            <span>出勤次数 ${totalCount}</span>
+            <span>有效次数 ${validCount}</span>
+            <span>有效率 ${validRate}%</span>
+            <span>总时长 ${totalHours}小时</span>
+            <span>平均时长 ${avgHours}小时</span>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead><tr style="background: var(--bg-gray);">
+                <th style="padding: 10px; text-align: left; font-weight: 500;">日期</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">签到时间</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">签退时间</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">时长</th>
+                <th style="padding: 10px; text-align: left; font-weight: 500;">状态</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+
+        if (totalPages > 1) {
+            html += `<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                <span>第${page}/${totalPages}页</span>
+                <button class="btn btn-tiny" onclick="attViewPubGoTo(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                <input type="number" value="${page}" min="1" max="${totalPages}" style="width: 52px; text-align: center; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; outline: none;" onchange="attViewPubGoTo(parseInt(this.value))">
+                <button class="btn btn-tiny" onclick="attViewPubGoTo(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
+            </div>`;
+        }
+        return html;
+    }
+
+    openModal('查看记录', renderPage(1), '<button class="btn btn-secondary" onclick="closeModal()">关闭</button>');
+    lockModalHeight();
+    window.attViewPubGoTo = (page) => {
+        if (page < 1 || page > totalPages) return;
+        document.getElementById('modalBody').innerHTML = renderPage(page);
+        lockModalHeight();
+    };
+}
+
+async function refreshData() {
+    await Promise.all([
+        loadOnlineUsers(),
+        loadMyRecords(),
+        loadRankings(currentRankingPeriod)
+    ]);
+    showToast('数据已刷新', 'success');
+}
+
+function showProfileModal() {
+    openModal(
+        '填写邮箱',
+        `<div class="form-group">
+            <label>邮箱地址</label>
+            <input type="email" id="myEmail" placeholder="请输入邮箱地址" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>`,
+        `<button class="btn btn-secondary" onclick="closeModal()">取消</button>
+         <button class="btn-lg btn-lg-primary" onclick="submitMyEmail()">保存</button>`,
+        null, false
+    );
+}
+
+async function submitMyEmail() {
+    const email = document.getElementById('myEmail').value.trim();
+    if (!email) {
+        showToast('请输入邮箱地址', 'error');
+        return;
+    }
+
+    const res = await apiRequest('/api/user/email', {
+        method: 'PUT',
+        body: JSON.stringify({ email: email })
+    });
+
+    if (res.success) {
+        showToast('邮箱更新成功', 'success');
+        closeModal();
+        // 刷新页面移除提示
+        location.reload();
+    } else {
+        showToast(res.message || '更新失败', 'error');
+    }
+}
+
+function logout() {
+    window.location.href = '/logout';
+}
+
+function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+    document.getElementById('clock').textContent = timeStr;
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadCurrentUser();
+    await loadOnlineUsers();
+    await loadMyRecords();
+    await loadRankings('week');
+
+    setInterval(updateClock, 1000);
+});
+</script>
+{% endblock %}

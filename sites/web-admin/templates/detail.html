@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ page.subtitle if page.subtitle else page.title }}">
+    <title>{{ page.title }} - {{ data.hero.title if data.hero else '星社' }}</title>
+    <link rel="icon" href="../static/starclub.png" type="image/png">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <style>
+        .detail-page-content { max-width: 900px; margin: 0 auto; }
+        .detail-section { margin-bottom: 40px; }
+        .detail-section-heading { font-size: 22px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--primary-color); }
+        .detail-section-text { line-height: 1.8; color: var(--text-light); }
+        .detail-section-text p { margin-bottom: 12px; }
+        .detail-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .detail-card { background: var(--bg-white); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); transition: var(--transition); }
+        .detail-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+        .detail-card a { text-decoration: none; color: inherit; display: block; }
+        .detail-card-icon { font-size: 32px; margin-bottom: 12px; }
+        .detail-card-title { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+        .detail-card-desc { font-size: 14px; color: var(--text-light); line-height: 1.6; }
+        .detail-card-link { display: inline-block; margin-top: 12px; color: var(--primary-color); font-size: 14px; font-weight: 500; }
+        .detail-section-image { border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+        .detail-section-image img { width: 100%; height: auto; display: block; }
+        .detail-section-image .media-caption { padding: 10px 16px; background: var(--bg-gray); color: var(--text-light); font-size: 13px; text-align: center; }
+        .detail-section-video { border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+        .detail-section-video video, .detail-section-video iframe { width: 100%; display: block; }
+        .detail-section-video .media-caption { padding: 10px 16px; background: var(--bg-gray); color: var(--text-light); font-size: 13px; text-align: center; }
+        .detail-section-audio { border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); background: var(--bg-white); padding: 20px; }
+        .detail-section-audio audio { width: 100%; }
+        .detail-section-audio .media-caption { padding: 10px 16px; background: var(--bg-gray); color: var(--text-light); font-size: 13px; text-align: center; margin-top: 12px; border-radius: 6px; }
+        .detail-section-html { border-radius: 8px; }
+        .detail-section-markdown { line-height: 1.8; color: var(--text-dark); }
+        .detail-section-markdown h1, .detail-section-markdown h2, .detail-section-markdown h3,
+        .detail-section-markdown h4, .detail-section-markdown h5, .detail-section-markdown h6 { margin: 20px 0 10px; color: var(--text-dark); }
+        .detail-section-markdown h1 { font-size: 24px; }
+        .detail-section-markdown h2 { font-size: 20px; }
+        .detail-section-markdown h3 { font-size: 18px; }
+        .detail-section-markdown p { margin-bottom: 12px; }
+        .detail-section-markdown ul, .detail-section-markdown ol { padding-left: 24px; margin-bottom: 12px; }
+        .detail-section-markdown li { margin-bottom: 6px; }
+        .detail-section-markdown code { background: var(--bg-gray); padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+        .detail-section-markdown pre { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+        .detail-section-markdown pre code { background: none; padding: 0; color: inherit; }
+        .detail-section-markdown blockquote { border-left: 4px solid var(--primary-color); padding: 8px 16px; margin: 12px 0; background: var(--bg-gray); border-radius: 0 8px 8px 0; }
+        .detail-section-markdown table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .detail-section-markdown th, .detail-section-markdown td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: left; }
+        .detail-section-markdown th { background: var(--bg-gray); font-weight: 600; }
+        .detail-section-markdown img { max-width: 100%; border-radius: 8px; }
+        .detail-section-markdown a { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="../index.html" class="logo">
+                    <img src="../static/starclub-title.png" alt="星社">
+                </a>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../about.html">关于我们</a></li>
+                    <li><a href="../activities.html">星社动态</a></li>
+                    <li><a href="../resources.html">学习资源</a></li>
+                    <li><a href="../members.html">成员风采</a></li>
+                    <li><a href="../join.html">加入星社</a></li>
+                    <li><a href="../contact.html">联系我们</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1 class="page-title">{{ page.title }}</h1>
+                {% if page.subtitle %}
+                <p class="page-subtitle">{{ page.subtitle }}</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="content-section section-white">
+            <div class="container">
+                <div class="detail-page-content">
+                    {% if page.sections %}
+                    {% for section in page.sections %}
+                    <div class="detail-section">
+                        {% if section.type == 'heading' %}
+                        <h2 class="detail-section-heading">{{ section.content }}</h2>
+
+                        {% elif section.type == 'text' %}
+                        <div class="detail-section-text">{{ section.content | safe }}</div>
+
+                        {% elif section.type == 'cards' %}
+                        {% if section.card_items %}
+                        <div class="detail-cards-grid">
+                            {% for card in section.card_items %}
+                            {% if card.link %}
+                            <a href="{{ card.link | fix_uploads_pages }}" class="detail-card"{% if card.link is string and card.link.startswith('http') %} target="_blank"{% endif %}>
+                            {% else %}
+                            <div class="detail-card">
+                            {% endif %}
+                                {% if card.icon %}<div class="detail-card-icon">{{ card.icon }}</div>{% endif %}
+                                {% if card.title %}<div class="detail-card-title">{{ card.title }}</div>{% endif %}
+                                {% if card.desc %}<div class="detail-card-desc">{{ card.desc }}</div>{% endif %}
+                                {% if card.link %}<span class="detail-card-link">查看详情 →</span>{% endif %}
+                            {% if card.link %}
+                            </a>
+                            {% else %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% elif section.type == 'image' %}
+                        <div class="detail-section-image">
+                            <img src="{{ section.src | fix_uploads_pages }}" alt="{{ section.alt if section.alt else '' }}" loading="lazy">
+                            {% if section.caption %}
+                            <div class="media-caption">{{ section.caption }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% elif section.type == 'video' %}
+                        <div class="detail-section-video">
+                            {% if section.src %}
+                            <video controls preload="metadata"{% if section.poster %} poster="{{ section.poster | fix_uploads_pages }}"{% endif %}>
+                                <source src="{{ section.src | fix_uploads_pages }}" type="video/mp4">
+                                您的浏览器不支持视频播放
+                            </video>
+                            {% elif section.embed %}
+                            <iframe src="{{ section.embed }}" frameborder="0" allowfullscreen
+                                style="aspect-ratio: 16/9; min-height: 360px;"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                            </iframe>
+                            {% endif %}
+                            {% if section.caption %}
+                            <div class="media-caption">{{ section.caption }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% elif section.type == 'audio' %}
+                        <div class="detail-section-audio">
+                            {% if section.src %}
+                            <audio controls preload="metadata" style="width:100%;">
+                                <source src="{{ section.src | fix_uploads_pages }}" type="audio/mpeg">
+                                您的浏览器不支持音频播放
+                            </audio>
+                            {% endif %}
+                            {% if section.caption %}
+                            <div class="media-caption">{{ section.caption }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% elif section.type == 'html' %}
+                        <div class="detail-section-html">{{ section.content | safe }}</div>
+
+                        {% elif section.type == 'markdown' %}
+                        <div class="detail-section-markdown">{{ (section.html if section.html else section.content) | safe }}</div>
+
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>{{ data.footer.column1Title if data.footer and data.footer.column1Title else '关于星社' }}</h4>
+                    <ul class="footer-links">
+                        {% if data.footer and data.footer.column1Items %}
+                            {% for item in data.footer.column1Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_uploads_pages }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="../about.html">关于我们</a></li>
+                            <li><a href="../contact.html">联系我们</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>{{ data.footer.column2Title if data.footer and data.footer.column2Title else '快速链接' }}</h4>
+                    <ul class="footer-links">
+                        {% if data.footer and data.footer.column2Items %}
+                            {% for item in data.footer.column2Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_uploads_pages }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="../activities.html">星社动态</a></li>
+                            <li><a href="../resources.html">学习资源</a></li>
+                            <li><a href="../members.html">成员风采</a></li>
+                            <li><a href="../join.html">加入星社</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>{{ data.footer.column3Title if data.footer and data.footer.column3Title else '联系我们' }}</h4>
+                    <ul class="footer-links">
+                        {% if data.footer and data.footer.column3Items %}
+                            {% for item in data.footer.column3Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_uploads_pages }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="../contact.html">联系方式</a></li>
+                        {% endif %}
+                        {% if data.footer and data.footer.github %}
+                        <li><a href="{{ data.footer.github }}" class="footer-github" target="_blank">
+                            <svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;"><path fill="currentColor" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ data.footer.copyright if data.footer and data.footer.copyright else now.year }} 星社. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+        <script src="../js/main.js"></script>
+</body>
+</html>

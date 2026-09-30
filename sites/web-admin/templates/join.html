@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入星社 - {{ data.hero.title if data.hero else '星社' }}</title>
+    <link rel="icon" href="static/starclub.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="static/starclub-title.png" alt="StarClub Logo">
+                </a>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="about.html">关于我们</a></li>
+                    <li><a href="activities.html">星社动态</a></li>
+                    <li><a href="resources.html">学习资源</a></li>
+                    <li><a href="members.html">成员风采</a></li>
+                    <li><a href="join.html" class="active">加入星社</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 页面头部 -->
+        <section class="page-header">
+            <div class="container">
+                <h1 class="page-title">加入星社</h1>
+                <p class="page-subtitle">成为星社的一员，一起探索智慧社团新范式</p>
+            </div>
+        </section>
+
+        <!-- 招募公告 -->
+        <section class="content-section section-white">
+            <div class="container">
+                <div class="join-info" id="joinInfo">
+                    {% if data.join %}
+                    {# 根据招募状态显示不同提示 #}
+                    {% if data.join.status == 'closed' %}
+                    <div class="join-notice-banner join-notice-closed">
+                        <div class="join-notice-icon">📋</div>
+                        <div class="join-notice-content">
+                            <h3>本期招募已结束</h3>
+                            <p>感谢您的关注！下一期招募敬请期待...</p>
+                            <p>关注星社公众号，获取下次招募第一手资讯</p>
+                        </div>
+                    </div>
+                    {% elif data.join.status == 'pending' %}
+                    <div class="join-notice-banner join-notice-pending">
+                        <div class="join-notice-icon">🔔</div>
+                        <div class="join-notice-content">
+                            <h3>招募即将开始</h3>
+                            <p>请耐心等待，招募通道即将开启...</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="join-section">
+                        <h3>招募公告</h3>
+                        <p>{{ data.join.notice if data.join.notice else '欢迎对智慧社团和数字化创新感兴趣的伙伴加入！' }}</p>
+                        {% if data.join.time %}
+                        <p><strong>招募时间：</strong>{{ data.join.time }}</p>
+                        {% endif %}
+                        {% if data.join.location %}
+                        <p><strong>招募地点：</strong>{{ data.join.location }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# 加入要求 #}
+                    <div class="join-section">
+                        <h3>加入要求</h3>
+                        <ul class="requirement-list">
+                            {% if data.join.requirements and data.join.requirements %}
+                                {% for req in data.join.requirements %}
+                                <li>{{ req }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>对智慧社团建设或数字化创新有浓厚兴趣</li>
+                                <li>愿意投入时间和精力参与星社共创</li>
+                                <li>具备基本的计算机操作能力</li>
+                                <li>遵守星社章程，积极配合星社工作</li>
+                                <li>有团队协作精神，乐于分享交流</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    {# 你将获得 #}
+                    <div class="join-section">
+                        <h3>你将获得</h3>
+                        <ul class="requirement-list">
+                            {% if data.join.benefits and data.join.benefits %}
+                                {% for benefit in data.join.benefits %}
+                                <li>{{ benefit }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>系统化的智慧社团平台学习机会</li>
+                                <li>参与各类创新竞赛的培训和指导</li>
+                                <li>与优秀前辈交流学习的机会</li>
+                                <li>丰富的共创实践与实战经验</li>
+                                <li>结识志同道合的伙伴</li>
+                                <li>提升个人能力和履历的机会</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    {# FAQ 常见问题 #}
+                    {% if data.join.faq and data.join.faq|length > 0 %}
+                    <div class="join-section join-faq">
+                        <h3>常见问题</h3>
+                        <div class="faq-list">
+                            {% for item in data.join.faq %}
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFaq({{ loop.index0 }})">
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q-text">{{ item.question }}</span>
+                                    <span class="faq-toggle" id="faq-toggle-{{ loop.index0 }}">▼</span>
+                                </div>
+                                <div class="faq-answer" id="faq-answer-{{ loop.index0 }}" style="display: none;">
+                                    {{ item.answer }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- 报名方式 -->
+        <section class="content-section section-gray">
+            <div class="container">
+                <h2 class="section-title">报名方式</h2>
+                {% if data.join %}
+                    {% if data.join.status == 'open' %}
+                    <div id="joinContact">
+                        <div class="join-contact-grid">
+                            {% if data.join.qqGroup %}
+                            <div class="join-contact-card">
+                                <div class="join-contact-icon">👥</div>
+                                <div class="join-contact-label">官方联络渠道</div>
+                                <div class="join-contact-value">{{ data.join.qqGroup }}</div>
+                            </div>
+                            {% endif %}
+                            {% if data.join.time %}
+                            <div class="join-contact-card">
+                                <div class="join-contact-icon">📅</div>
+                                <div class="join-contact-label">招募时间</div>
+                                <div class="join-contact-value">{{ data.join.time }}</div>
+                            </div>
+                            {% endif %}
+                            {% if data.join.location %}
+                            <div class="join-contact-card">
+                                <div class="join-contact-icon">📍</div>
+                                <div class="join-contact-label">招募地点</div>
+                                <div class="join-contact-value">{{ data.join.location }}</div>
+                            </div>
+                            {% endif %}
+                            {% if data.join.link %}
+                            <div class="join-contact-card join-contact-card-action">
+                                <div class="join-contact-icon">📝</div>
+                                <div class="join-contact-label">在线报名</div>
+                                <div class="join-contact-value"><a href="{{ data.join.link }}" target="_blank" class="join-btn">立即报名</a></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p style="text-align: center; color: #888; padding: 20px;">报名暂未开启，请关注后续通知</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>{{ data.footer.column1Title if data.footer and data.footer.column1Title else '关于星社' }}</h4>
+                    <ul class="footer-links" id="footerCol1Links">
+                        {% if data.footer and data.footer.column1Items %}
+                            {% for item in data.footer.column1Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_path }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="about.html">关于我们</a></li>
+                            <li><a href="contact.html">联系我们</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>{{ data.footer.column2Title if data.footer and data.footer.column2Title else '快速链接' }}</h4>
+                    <ul class="footer-links" id="footerCol2Links">
+                        {% if data.footer and data.footer.column2Items %}
+                            {% for item in data.footer.column2Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_path }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="activities.html">星社动态</a></li>
+                            <li><a href="resources.html">学习资源</a></li>
+                            <li><a href="members.html">成员风采</a></li>
+                            <li><a href="join.html">加入星社</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>{{ data.footer.column3Title if data.footer and data.footer.column3Title else '联系我们' }}</h4>
+                    <ul class="footer-links" id="footerCol3Links">
+                        {% if data.footer and data.footer.column3Items %}
+                            {% for item in data.footer.column3Items %}
+                            <li><a href="{{ (item.link if item.link else '#') | fix_path }}">{{ item.text }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="contact.html">联系方式</a></li>
+                        {% endif %}
+                        {% if data.footer and data.footer.github %}
+                        <li><a href="{{ data.footer.github }}" class="footer-github" target="_blank">
+                            <svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;"><path fill="currentColor" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p id="footerCopyright">&copy; {{ data.footer.copyright if data.footer and data.footer.copyright else now.year }} 星社. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // FAQ 切换函数
+        function toggleFaq(index) {
+            const answer = document.getElementById(`faq-answer-${index}`);
+            const toggle = document.getElementById(`faq-toggle-${index}`);
+            if (answer && toggle) {
+                const isVisible = answer.style.display !== 'none';
+                answer.style.display = isVisible ? 'none' : 'block';
+                toggle.textContent = isVisible ? '▼' : '▲';
+            }
+        }
+    </script>
+</body>
+</html>

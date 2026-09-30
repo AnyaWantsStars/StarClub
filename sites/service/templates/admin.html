@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarClub | 管理后台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/starclub.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="/static/starclub-white.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+                    <h1 class="site-title">StarClub | 管理后台</h1>
+                </div>
+                <div class="user-section">
+                    <span class="user-info">
+                        <span class="user-name">{{ user.get('display_name', user.username) }}</span>
+                        <span class="user-type">({{ user_types.get(user.user_type, user.user_type) }})</span>
+                    </span>
+                    <a href="/" class="header-btn">返回首页</a>
+                    <a href="/logout" class="header-btn">退出</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="admin-container">
+                <div class="admin-tabs">
+                    <button class="tab-btn active" data-tab="services">服务管理</button>
+                    <button class="tab-btn" data-tab="modules">模块管理</button>
+                    {% if user.user_type in ['user_manager', 'platform_manager', 'super_admin'] or user.user_type == 'super_admin' %}
+                    <button class="tab-btn" data-tab="users">用户管理</button>
+                    {% endif %}
+                    {% if user.user_type in ['platform_manager', 'super_admin'] %}
+                    <button class="tab-btn" data-tab="settings">系统设置</button>
+                    {% endif %}
+                </div>
+
+                <div class="tab-content active" id="services-tab">
+                    <div class="panel-header">
+                        <h3>服务列表</h3>
+                        <button class="btn btn-primary" onclick="showServiceModal()">添加服务</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>图标</th>
+                                    <th>名称</th>
+                                    <th>模块</th>
+                                    <th>类型</th>
+                                    <th>URL</th>
+                                    <th>显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="servicesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="modules-tab">
+                    <div class="panel-header">
+                        <h3>模块列表</h3>
+                        <button class="btn btn-primary" onclick="showModuleModal()">添加模块</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>排序</th>
+                                    <th>图标</th>
+                                    <th>名称</th>
+                                    <th>类型</th>
+                                    <th>显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modulesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="settings-tab">
+                    <div class="panel-header">
+                        <h3>系统设置</h3>
+                    </div>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label>JWT 认证有效期（小时）</label>
+                            <input type="number" id="settingsJwtExpiration" min="1" max="720" step="0.5" placeholder="6">
+                            <span class="form-hint">默认 6 小时，Token 过期后需重新签名</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="users-tab">
+                    <div class="panel-header">
+                        <h3>用户列表</h3>
+                        <button class="btn btn-primary" onclick="showUserModal()">添加用户</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>显示名称</th>
+                                    <th>用户类型</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025-<span id="currentYear"></span> 星社. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <div id="serviceModal" class="modal" data-close-on-outside="false">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="serviceModalTitle">添加服务</h3>
+                <button class="modal-close" onclick="closeServiceModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="serviceModalBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeServiceModal()">取消</button>
+                <button class="btn btn-primary" id="serviceModalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="userModal" class="modal" data-close-on-outside="false">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">添加用户</h3>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="userModalBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUserModal()">取消</button>
+                <button class="btn btn-primary" id="userModalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="moduleModal" class="modal" data-close-on-outside="false">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="moduleModalTitle">添加模块</h3>
+                <button class="modal-close" onclick="closeModuleModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="moduleModalBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModuleModal()">取消</button>
+                <button class="btn btn-primary" id="moduleModalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        const currentUser = {{ user | tojson | safe }};
+        const userTypes = {{ user_types | tojson | safe }};
+        const serviceTypes = {{ service_types | tojson | safe }};
+        const moduleTypes = {{ module_types | tojson | safe }};
+        let servicesData = [];
+        let usersData = [];
+        let modulesData = [];
+        let allUsersData = [];
+        let editingServiceId = null;
+        let editingUserId = null;
+        let editingModuleId = null;
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+                if (btn.dataset.tab === 'modules') {
+                    loadModules();
+                }
+                if (btn.dataset.tab === 'settings') {
+                    loadSettings();
+                }
+            });
+        });
+
+        async function loadServices() {
+            try {
+                const res = await fetch('/api/admin/services');
+                const result = await res.json();
+                if (result.success) {
+                    servicesData = result.services;
+                    renderServices();
+                }
+            } catch (e) {
+                showToast('加载服务失败', 'error');
+            }
+        }
+
+        function renderServices() {
+            const tbody = document.getElementById('servicesTableBody');
+            tbody.innerHTML = servicesData.map((s, i) => {
+                const module = modulesData.find(m => m.id === s.module_id);
+                return `
+                <tr draggable="true" data-id="${s.id}" data-index="${i}" class="draggable-row">
+                    <td><span class="drag-handle">☰</span><span class="service-icon-lg">${escapeHtml(s.icon || '🔗')}</span></td>
+                    <td>${escapeHtml(s.name)}</td>
+                    <td>${module ? escapeHtml(module.name) : '<span style="color:#999">未分类</span>'}</td>
+                    <td><span class="service-type-badge service-type-${s.type}">${serviceTypes[s.type] || s.type}</span></td>
+                    <td><a href="${escapeHtml(s.url)}" target="_blank">${escapeHtml(s.url)}</a></td>
+                    <td>
+                        <label class="switch" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${s.display ? 'checked' : ''} onchange="toggleServiceDisplay('${s.id}', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn-tiny btn-edit" onclick="editService('${s.id}')">编辑</button>
+                        <button class="btn-tiny btn-delete" onclick="deleteService('${s.id}')">删除</button>
+                    </td>
+                </tr>
+            `}).join('');
+            initDragAndDrop('servicesTableBody', 'services');
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/users');
+                const result = await res.json();
+                if (result.success) {
+                    usersData = result.users;
+                    renderUsers();
+                }
+            } catch (e) {
+                showToast('加载用户失败', 'error');
+            }
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = usersData.map(u => `
+                <tr>
+                    <td>${escapeHtml(u.username)}</td>
+                    <td>${escapeHtml(u.display_name || '')}</td>
+                    <td>${userTypes[u.user_type] || u.user_type}</td>
+                    <td>
+                        <label class="switch" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${u.banned ? '' : 'checked'} onchange="toggleUserBanned('${u.id}', ${!u.banned})">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>${u.created_at ? u.created_at.split('T')[0] : ''}</td>
+                    <td>
+                        <button class="btn-tiny btn-edit" onclick="editUser('${u.id}')">编辑</button>
+                        ${u.id !== currentUser.id ? `<button class="btn-tiny btn-delete" onclick="deleteUser('${u.id}')">删除</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadUsersForSelect() {
+            try {
+                const res = await fetch('/api/users/list');
+                const result = await res.json();
+                if (result.success) {
+                    allUsersData = result.users;
+                }
+                return result;
+            } catch (e) {
+                return { success: false, users: [] };
+            }
+        }
+
+        function renderUserPickerItems(selectedUsers) {
+            let html = '';
+            const usersByType = {};
+            allUsersData.forEach(u => {
+                if (!usersByType[u.user_type]) usersByType[u.user_type] = [];
+                usersByType[u.user_type].push(u);
+            });
+            const typeOrder = ['super_admin', 'platform_manager', 'user_manager', 'service_manager', 'regular'];
+            const isSelected = userId => selectedUsers.includes(userId);
+            typeOrder.forEach(t => {
+                const users = usersByType[t];
+                if (users && users.length > 0) {
+                    html += `<div class="user-picker-group">
+                        <div class="user-picker-group-title">${userTypes[t] || t}</div>`;
+                    users.forEach(u => {
+                        const sel = isSelected(u.id);
+                        html += `<div class="user-picker-item ${sel ? 'selected' : ''}" data-user-id="${u.id}" onclick="toggleUserSelection('${u.id}', this)">
+                            <span class="user-picker-name">${escapeHtml(u.display_name || u.username)}</span>
+                            <span class="user-picker-username">(${escapeHtml(u.username)})</span>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+            });
+            if (!html) html = '<div class="user-picker-empty">暂无用户</div>';
+            return html;
+        }
+
+        function renderSelectedUserTags(selectedUsers) {
+            return selectedUsers.map(id => {
+                const u = allUsersData.find(u => u.id === id);
+                const name = u ? (u.display_name || u.username) : id;
+                return `<span class="user-tag" data-user-id="${id}">
+                    ${escapeHtml(name)}
+                    <button type="button" class="user-tag-remove" onclick="removeUserSelection('${id}')">&times;</button>
+                </span>`;
+            }).join('');
+        }
+
+        function toggleUserSelection(userId, el) {
+            el.classList.toggle('selected');
+            updateSelectedUserTags();
+        }
+
+        function removeUserSelection(userId) {
+            const item = document.querySelector(`#userPickerList .user-picker-item[data-user-id="${userId}"]`);
+            if (item) item.classList.remove('selected');
+            updateSelectedUserTags();
+        }
+
+        function updateSelectedUserTags() {
+            const selectedIds = Array.from(document.querySelectorAll('#userPickerList .user-picker-item.selected')).map(el => el.dataset.userId);
+            document.getElementById('userPickerSelected').innerHTML = renderSelectedUserTags(selectedIds);
+        }
+
+        function filterUserPicker() {
+            const query = document.getElementById('userSearchInput').value.toLowerCase();
+            const items = document.querySelectorAll('#userPickerList .user-picker-item');
+            const groups = document.querySelectorAll('#userPickerList .user-picker-group');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? '' : 'none';
+            });
+            groups.forEach(group => {
+                const visibleCount = group.querySelectorAll('.user-picker-item').length;
+                const hiddenCount = group.querySelectorAll('.user-picker-item[style*="display: none"]').length;
+                group.style.display = hiddenCount < visibleCount ? '' : 'none';
+            });
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/admin/settings');
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('settingsJwtExpiration').value = result.settings.jwt_expiration_hours || 6;
+                }
+            } catch (e) {
+                showToast('加载设置失败', 'error');
+            }
+        }
+
+        async function saveSettings() {
+            const hours = parseFloat(document.getElementById('settingsJwtExpiration').value);
+            if (!hours || hours <= 0) {
+                showToast('有效期必须为正数', 'error');
+                return;
+            }
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jwt_expiration_hours: hours })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('设置已保存', 'success');
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('保存失败', 'error');
+            }
+        }
+
+        async function loadModules() {
+            try {
+                const res = await fetch('/api/admin/modules');
+                const result = await res.json();
+                if (result.success) {
+                    modulesData = result.modules;
+                    renderModules();
+                    renderServices();
+                }
+            } catch (e) {
+                showToast('加载模块失败', 'error');
+            }
+        }
+
+        function renderModules() {
+            const tbody = document.getElementById('modulesTableBody');
+            tbody.innerHTML = modulesData.map((m, i) => `
+                <tr draggable="true" data-id="${m.id}" data-index="${i}" class="draggable-row">
+                    <td><span class="drag-handle">☰</span></td>
+                    <td><span class="service-icon-lg">${escapeHtml(m.icon || '📁')}</span></td>
+                    <td>${escapeHtml(m.name)}</td>
+                    <td><span class="service-type-badge service-type-${m.type || 'public'}">${moduleTypes[m.type] || '公开模块'}</span></td>
+                    <td>
+                        <label class="switch" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${m.display !== false ? 'checked' : ''} onchange="toggleModuleDisplay('${m.id}', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn-tiny btn-edit" onclick="editModule('${m.id}')">编辑</button>
+                        <button class="btn-tiny btn-delete" onclick="deleteModule('${m.id}')">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+            initDragAndDrop('modulesTableBody', 'modules');
+        }
+
+        function showModuleModal(module = null) {
+            editingModuleId = module ? module.id : null;
+            document.getElementById('moduleModalTitle').textContent = module ? '编辑模块' : '添加模块';
+            document.getElementById('moduleModalBody').innerHTML = `
+                <div class="form-group">
+                    <label>图标</label>
+                    <div class="emoji-picker-wrapper">
+                        <input type="text" id="inputModuleIcon" value="${escapeHtml(module?.icon || '📁')}" maxlength="10" placeholder="点击选择图标">
+                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-module', 'inputModuleIcon')">😊</button>
+                        <div id="emoji-picker-module" class="emoji-picker-dropdown"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>名称 *</label>
+                    <input type="text" id="inputModuleName" value="${escapeHtml(module?.name || '')}" required>
+                </div>
+                <div class="form-group">
+                    <label>类型</label>
+                    <select id="inputModuleType">
+                        <option value="public" ${(module?.type || 'public') === 'public' ? 'selected' : ''}>公开模块</option>
+                        <option value="internal" ${module?.type === 'internal' ? 'selected' : ''}>内部模块</option>
+                        <option value="private" ${module?.type === 'private' ? 'selected' : ''}>专属模块</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>显示</label>
+                    <label class="switch">
+                        <input type="checkbox" id="inputModuleDisplay" ${module?.display !== false ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            `;
+            initEmojiPickers();
+            document.getElementById('moduleModalConfirmBtn').onclick = saveModule;
+            openModal('moduleModal');
+        }
+
+        async function saveModule() {
+            const name = document.getElementById('inputModuleName').value.trim();
+            if (!name) {
+                showToast('请填写必填项', 'error');
+                return;
+            }
+            const data = {
+                name: name,
+                icon: document.getElementById('inputModuleIcon').value || '📁',
+                type: document.getElementById('inputModuleType').value,
+                display: document.getElementById('inputModuleDisplay').checked
+            };
+            try {
+                let res;
+                if (editingModuleId) {
+                    res = await fetch(`/api/admin/modules/${editingModuleId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    res = await fetch('/api/admin/modules', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                const result = await res.json();
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeModuleModal();
+                    loadModules();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('保存失败', 'error');
+            }
+        }
+
+        function editModule(id) {
+            const module = modulesData.find(m => m.id === id);
+            if (module) {
+                showModuleModal(module);
+            }
+        }
+
+        async function deleteModule(id) {
+            if (!confirm('确定要删除此模块吗？模块内的服务将移至未分类。')) return;
+            try {
+                const res = await fetch(`/api/admin/modules/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('已删除', 'success');
+                    loadModules();
+                    loadServices();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('删除失败', 'error');
+            }
+        }
+
+        function closeModuleModal() {
+            closeModal('moduleModal');
+            editingModuleId = null;
+        }
+
+        function showServiceModal(service = null) {
+            editingServiceId = service ? service.id : null;
+            document.getElementById('serviceModalTitle').textContent = service ? '编辑服务' : '添加服务';
+            let moduleOptions = '<option value="">未分类</option>' + modulesData.map(m =>
+                `<option value="${m.id}" ${service?.module_id === m.id ? 'selected' : ''}>${escapeHtml(m.name)}</option>`
+            ).join('');
+            const selectedUsers = service?.visible_to || [];
+            document.getElementById('serviceModalBody').innerHTML = `
+                <div class="form-group">
+                    <label>图标</label>
+                    <div class="emoji-picker-wrapper">
+                        <input type="text" id="inputIcon" value="${escapeHtml(service?.icon || '🔗')}" maxlength="10" placeholder="点击选择图标">
+                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-icon', 'inputIcon')">😊</button>
+                        <div id="emoji-picker-icon" class="emoji-picker-dropdown"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>名称 *</label>
+                    <input type="text" id="inputName" value="${escapeHtml(service?.name || '')}" required>
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <input type="text" id="inputDesc" value="${escapeHtml(service?.description || '')}">
+                </div>
+                <div class="form-group">
+                    <label>URL *</label>
+                    <input type="text" id="inputUrl" value="${escapeHtml(service?.url || '')}" required>
+                </div>
+                <div class="form-group">
+                    <label>模块</label>
+                    <select id="inputModuleId">
+                        ${moduleOptions}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>类型</label>
+                    <select id="inputType">
+                        <option value="public" ${service?.type === 'public' ? 'selected' : ''}>公开服务</option>
+                        <option value="internal" ${service?.type === 'internal' ? 'selected' : ''}>内部服务</option>
+                        <option value="private" ${service?.type === 'private' ? 'selected' : ''}>专属服务</option>
+                    </select>
+                </div>
+                <div class="form-group" id="visibleUsersGroup" style="display: ${service?.type === 'private' ? 'block' : 'none'};">
+                    <label>可见用户</label>
+                    <div class="user-picker">
+                        <div class="user-picker-search">
+                            <input type="text" id="userSearchInput" placeholder="搜索用户..." oninput="filterUserPicker()">
+                        </div>
+                        <div class="user-picker-list" id="userPickerList">
+                            ${renderUserPickerItems(selectedUsers)}
+                        </div>
+                        <div class="user-picker-selected" id="userPickerSelected">
+                            ${renderSelectedUserTags(selectedUsers)}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>显示</label>
+                    <label class="switch">
+                        <input type="checkbox" id="inputDisplay" ${service?.display !== false ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>嵌入显示</label>
+                    <label class="switch">
+                        <input type="checkbox" id="inputEmbed" ${service?.embed !== false ? 'checked' : ''} onchange="toggleEmbedPath()">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="form-hint" style="margin-left:10px;font-size:12px;color:var(--text-secondary);">在门户路径下全屏嵌入子服务</span>
+                </div>
+                <div class="form-group" id="embedPathGroup" style="display: ${service?.embed !== false ? 'block' : 'none'};">
+                    <label>嵌入路径名</label>
+                    <input type="text" id="inputEmbedPath" value="${escapeHtml(service?.embed_path || '')}" placeholder="例如：attendance">
+                    <span class="form-hint" style="font-size:12px;color:var(--text-secondary);">设置后通过 /service/名称 访问，留空则自动生成</span>
+                </div>
+            `;
+            initEmojiPickers();
+            document.getElementById('inputType').addEventListener('change', function() {
+                document.getElementById('visibleUsersGroup').style.display = this.value === 'private' ? 'block' : 'none';
+            });
+            document.getElementById('serviceModalConfirmBtn').onclick = saveService;
+            openModal('serviceModal');
+        }
+
+        function toggleEmbedPath() {
+            const embed = document.getElementById('inputEmbed').checked;
+            document.getElementById('embedPathGroup').style.display = embed ? 'block' : 'none';
+        }
+
+        async function saveService() {
+            const name = document.getElementById('inputName').value.trim();
+            const url = document.getElementById('inputUrl').value.trim();
+            if (!name || !url) {
+                showToast('请填写必填项', 'error');
+                return;
+            }
+            const visibleUsers = Array.from(document.querySelectorAll('#userPickerSelected .user-tag')).map(el => el.dataset.userId);
+            const data = {
+                name: name,
+                icon: document.getElementById('inputIcon').value,
+                description: document.getElementById('inputDesc').value,
+                url: url,
+                module_id: document.getElementById('inputModuleId').value || null,
+                type: document.getElementById('inputType').value,
+                visible_to: visibleUsers,
+                display: document.getElementById('inputDisplay').checked,
+                embed: document.getElementById('inputEmbed').checked,
+                embed_path: document.getElementById('inputEmbedPath').value.trim()
+            };
+            try {
+                let res;
+                if (editingServiceId) {
+                    res = await fetch(`/api/admin/services/${editingServiceId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    res = await fetch('/api/admin/services', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                const result = await res.json();
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeServiceModal();
+                    loadServices();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('保存失败', 'error');
+            }
+        }
+
+        function editService(id) {
+            const service = servicesData.find(s => s.id === id);
+            if (service) {
+                showServiceModal(service);
+            }
+        }
+
+        async function toggleServiceDisplay(id, display) {
+            try {
+                const service = servicesData.find(s => s.id === id);
+                if (!service) return;
+                const data = { ...service, display: display };
+                const res = await fetch(`/api/admin/services/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('已更新', 'success');
+                    loadServices();
+                } else {
+                    showToast(result.message, 'error');
+                    loadServices();
+                }
+            } catch (e) {
+                showToast('更新失败', 'error');
+                loadServices();
+            }
+        }
+
+        async function toggleModuleDisplay(id, display) {
+            try {
+                const module = modulesData.find(m => m.id === id);
+                if (!module) return;
+                const data = { ...module, display: display };
+                const res = await fetch(`/api/admin/modules/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('已更新', 'success');
+                    loadModules();
+                } else {
+                    showToast(result.message, 'error');
+                    loadModules();
+                }
+            } catch (e) {
+                showToast('更新失败', 'error');
+                loadModules();
+            }
+        }
+
+        async function deleteService(id) {
+            if (!confirm('确定要删除此服务吗？')) return;
+            try {
+                const res = await fetch(`/api/admin/services/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('已删除', 'success');
+                    loadServices();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('删除失败', 'error');
+            }
+        }
+
+        function closeServiceModal() {
+            closeModal('serviceModal');
+            editingServiceId = null;
+        }
+
+        function showUserModal(user = null) {
+            editingUserId = user ? user.id : null;
+            document.getElementById('userModalTitle').textContent = user ? '编辑用户' : '添加用户';
+            let typeOptions = '';
+            if (currentUser.user_type === 'super_admin') {
+                typeOptions = `
+                    <option value="regular" ${user?.user_type === 'regular' ? 'selected' : ''}>普通用户</option>
+                    <option value="service_manager" ${user?.user_type === 'service_manager' ? 'selected' : ''}>服务管理</option>
+                    <option value="user_manager" ${user?.user_type === 'user_manager' ? 'selected' : ''}>用户管理</option>
+                    <option value="platform_manager" ${user?.user_type === 'platform_manager' ? 'selected' : ''}>平台管理</option>
+                `;
+            } else if (currentUser.user_type === 'platform_manager') {
+                typeOptions = `
+                    <option value="regular" ${user?.user_type === 'regular' ? 'selected' : ''}>普通用户</option>
+                    <option value="service_manager" ${user?.user_type === 'service_manager' ? 'selected' : ''}>服务管理</option>
+                    <option value="user_manager" ${user?.user_type === 'user_manager' ? 'selected' : ''}>用户管理</option>
+                    <option value="platform_manager" ${user?.user_type === 'platform_manager' ? 'selected' : ''}>平台管理</option>
+                `;
+            } else if (currentUser.user_type === 'user_manager') {
+                typeOptions = `<option value="regular" selected>普通用户</option>`;
+            }
+            document.getElementById('userModalBody').innerHTML = `
+                <div class="form-group">
+                    <label>用户名 *</label>
+                    <input type="text" id="inputUsername" value="${escapeHtml(user?.username || '')}" ${user ? 'readonly' : ''} required>
+                </div>
+                <div class="form-group">
+                    <label>显示名称</label>
+                    <input type="text" id="inputDisplayName" value="${escapeHtml(user?.display_name || '')}">
+                </div>
+                ${typeOptions ? `<div class="form-group">
+                    <label>用户类型</label>
+                    <select id="inputUserType">${typeOptions}</select>
+                </div>` : ''}
+                <div class="form-group">
+                    <label>状态</label>
+                    <select id="inputBanned">
+                        <option value="false" ${!user?.banned ? 'selected' : ''}>正常</option>
+                        <option value="true" ${user?.banned ? 'selected' : ''}>禁用</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('userModalConfirmBtn').onclick = saveUser;
+            openModal('userModal');
+        }
+
+        async function saveUser() {
+            const username = document.getElementById('inputUsername').value.trim();
+            if (!username) {
+                showToast('用户名不能为空', 'error');
+                return;
+            }
+            const data = {
+                username: username,
+                display_name: document.getElementById('inputDisplayName').value.trim() || username
+            };
+            const userTypeSelect = document.getElementById('inputUserType');
+            if (userTypeSelect) {
+                data.user_type = userTypeSelect.value;
+            }
+            const bannedSelect = document.getElementById('inputBanned');
+            if (bannedSelect) {
+                data.banned = bannedSelect.value === 'true';
+            }
+            try {
+                let res;
+                if (editingUserId) {
+                    res = await fetch(`/api/users/${editingUserId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    res = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                const result = await res.json();
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeUserModal();
+                    loadUsers();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('保存失败', 'error');
+            }
+        }
+
+        function editUser(id) {
+            const user = usersData.find(u => u.id === id);
+            if (user) {
+                showUserModal(user);
+            }
+        }
+
+        async function toggleUserBanned(id, banned) {
+            try {
+                const res = await fetch(`/api/users/${id}/ban`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ banned: banned })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(banned ? '已禁用' : '已启用', 'success');
+                    loadUsers();
+                } else {
+                    showToast(result.message, 'error');
+                    loadUsers();
+                }
+            } catch (e) {
+                showToast('操作失败', 'error');
+                loadUsers();
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('确定要删除此用户吗？')) return;
+            try {
+                const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('已删除', 'success');
+                    loadUsers();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('删除失败', 'error');
+            }
+        }
+
+        function closeUserModal() {
+            closeModal('userModal');
+            editingUserId = null;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast toast-' + type;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                // 编辑类弹窗（data-close-on-outside="false"）不允许点击空白处关闭
+                // 信息提示类弹窗（默认）允许点击空白处关闭
+                if (event.target.getAttribute('data-close-on-outside') !== 'false') {
+                    event.target.style.display = 'none';
+                }
+            }
+        };
+
+        const commonEmojis = {
+            '常用': ['🔐', '🔒', '📚', '🎮', '🤝', '🎯', '🚀', '💡', '⭐', '✨', '🔥', '💎', '🛡️', '🔑', '📱', '💻', '🌐', '⚡', '📊', '📈'],
+            '安全': ['🔐', '🔒', '🔓', '🛡️', '🔑', '🔏', '🔎', '🕵️', '🚨', '⚠️', '🔰', '📛', '🔴', '🟢', '🔵'],
+            '学习': ['📚', '📖', '✏️', '📝', '🎓', '📌', '📍', '🔖', '🏷️', '📎', '✂️', '📐', '📏', '🧮', '🔬'],
+            '共创': ['🎮', '🎯', '🏆', '🎪', '🎨', '🎭', '🎬', '🎤', '🎧', '🎸', '🎹', '🎲', '🎰', '🎳', '🎯'],
+            '团队': ['🤝', '👥', '👤', '👨‍👩‍👧‍👦', '🧑‍🤝‍🧑', '👫', '👬', '👭', '🏃', '💪', '🙌', '🤲', '🤜', '🤛'],
+            '科技': ['💻', '🖥️', '💾', '💿', '📀', '📱', '☎️', '📞', '📟', '📠', '📡', '📺', '📻', '🎙️', '🔋'],
+            '其他': ['✅', '❌', '⭕', '❓', '❗', '‼️', '⁉️', '➕', '➖', '➗', '✖️', '💯', '💢', '♨️', '🚩']
+        };
+
+        function initEmojiPickers() {
+            document.querySelectorAll('.emoji-picker-dropdown').forEach(picker => {
+                if (picker.innerHTML === '') {
+                    picker.innerHTML = generateEmojiPickerHtml();
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.emoji-picker-wrapper')) {
+                    document.querySelectorAll('.emoji-picker-dropdown').forEach(p => p.classList.remove('show'));
+                }
+            });
+        }
+
+        function generateEmojiPickerHtml() {
+            let html = '';
+            for (const [category, emojis] of Object.entries(commonEmojis)) {
+                html += `
+                    <div class="emoji-category">
+                        <div class="emoji-category-title">${category}</div>
+                        <div class="emoji-grid">
+                            ${emojis.map(e => `<button type="button" class="emoji-btn" onclick="selectEmoji('${e}')">${e}</button>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        let currentEmojiTarget = null;
+
+        function toggleEmojiPicker(pickerId, targetId) {
+            const picker = document.getElementById(pickerId);
+            if (picker) {
+                document.querySelectorAll('.emoji-picker-dropdown').forEach(p => {
+                    if (p.id !== pickerId) p.classList.remove('show');
+                });
+                picker.classList.toggle('show');
+                currentEmojiTarget = targetId;
+            }
+        }
+
+        function selectEmoji(emoji) {
+            document.querySelectorAll('.emoji-picker-dropdown').forEach(p => p.classList.remove('show'));
+            if (currentEmojiTarget) {
+                const target = document.getElementById(currentEmojiTarget);
+                if (target) target.value = emoji;
+            }
+        }
+
+        loadServices();
+        loadModules();
+        loadUsers();
+        loadUsersForSelect();
+
+        // 拖拽排序功能
+        function initDragAndDrop(tableBodyId, type) {
+            const tbody = document.getElementById(tableBodyId);
+            if (!tbody) return;
+
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.addEventListener('dragstart', (e) => handleDragStart(e, row));
+                row.addEventListener('dragend', (e) => handleDragEnd(e, row));
+                row.addEventListener('dragover', (e) => handleDragOver(e, row));
+                row.addEventListener('drop', (e) => handleDrop(e, row, tableBodyId));
+                row.addEventListener('dragleave', (e) => handleDragLeave(e, row));
+            });
+        }
+
+        let draggedRow = null;
+
+        function handleDragStart(e, row) {
+            draggedRow = row;
+            row.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', row.dataset.id);
+        }
+
+        function handleDragEnd(e, row) {
+            row.classList.remove('dragging');
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            draggedRow = null;
+        }
+
+        function handleDragOver(e, row) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            row.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e, row) {
+            row.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e, row, tableBodyId) {
+            e.preventDefault();
+            row.classList.remove('drag-over');
+
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const targetId = row.dataset.id;
+
+            if (!draggedId || draggedId === targetId) return;
+
+            if (tableBodyId === 'modulesTableBody') {
+                await reorderModules(draggedId, targetId);
+            } else if (tableBodyId === 'servicesTableBody') {
+                await reorderServices(draggedId, targetId);
+            }
+        }
+
+        async function reorderModules(draggedId, targetId) {
+            const draggedIndex = modulesData.findIndex(m => m.id === draggedId);
+            const targetIndex = modulesData.findIndex(m => m.id === targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return;
+
+            const [moved] = modulesData.splice(draggedIndex, 1);
+            modulesData.splice(targetIndex, 0, moved);
+            modulesData.forEach((m, i) => m.order = i + 1);
+
+            try {
+                const res = await fetch('/api/admin/modules/reorder', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: modulesData.map(m => m.id) })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    renderModules();
+                }
+            } catch (e) {
+                showToast('排序保存失败', 'error');
+            }
+        }
+
+        async function reorderServices(draggedId, targetId) {
+            const draggedIndex = servicesData.findIndex(s => s.id === draggedId);
+            const targetIndex = servicesData.findIndex(s => s.id === targetId);
+            if (draggedIndex === -1 || targetIndex === -1) return;
+
+            const [moved] = servicesData.splice(draggedIndex, 1);
+            servicesData.splice(targetIndex, 0, moved);
+            servicesData.forEach((s, i) => s.order = i + 1);
+
+            try {
+                const res = await fetch('/api/admin/services/reorder', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: servicesData.map(s => s.id) })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    renderServices();
+                }
+            } catch (e) {
+                showToast('排序保存失败', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

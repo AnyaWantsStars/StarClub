@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarClub 网站管理后台</title>
+    <link rel="icon" href="../static/starclub.png" type="image/png">
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Emoji 选择器样式 */
+        .emoji-picker-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .emoji-picker-trigger {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .emoji-picker-trigger:hover {
+            opacity: 1;
+        }
+        .emoji-picker-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            padding: 10px;
+            margin-top: 4px;
+        }
+        .emoji-picker-dropdown.show {
+            display: block;
+        }
+        .emoji-category {
+            margin-bottom: 8px;
+        }
+        .emoji-category-title {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+        }
+        .emoji-option {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .emoji-option:hover {
+            background: #f0f0f0;
+        }
+        /* 日期输入框样式 */
+        input[type="date"],
+        input[type="month"] {
+            font-family: inherit;
+        }
+        /* 开关按钮样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--primary-color, #005a8c);
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        /* 移除原生日期选择器的默认样式 */
+        input[type="date"],
+        input[type="month"] {
+            -webkit-appearance: textfield;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        /* flatpickr 中文样式覆盖 */
+        .flatpickr-input {
+            background: #fff !important;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../static/starclub-white.png" alt="Logo" class="sidebar-logo">
+                <h2>StarClub 管理后台</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>仪表盘</span>
+                </a>
+                <div class="nav-divider">网站内容</div>
+                <a href="#" class="nav-item" data-section="hero">
+                    <span class="nav-icon">🎨</span>
+                    <span>首页横幅</span>
+                </a>
+                <a href="#" class="nav-item" data-section="quickLinks">
+                    <span class="nav-icon">🔗</span>
+                    <span>快速入口</span>
+                </a>
+<!--                <a href="#" class="nav-item" data-section="coreActivities">-->
+<!--                    <span class="nav-icon">🎯</span>-->
+<!--                    <span>核心共创</span>-->
+<!--                </a>-->
+                <a href="#" class="nav-item" data-section="activities">
+                    <span class="nav-icon">📅</span>
+                    <span>共创回顾</span>
+                </a>
+                <a href="#" class="nav-item" data-section="members">
+                    <span class="nav-icon">👥</span>
+                    <span>成员风采</span>
+                </a>
+                <a href="#" class="nav-item" data-section="resources">
+                    <span class="nav-icon">📚</span>
+                    <span>学习资源</span>
+                </a>
+                <a href="#" class="nav-item" data-section="books">
+                    <span class="nav-icon">📖</span>
+                    <span>推荐书籍</span>
+                </a>
+                <div class="nav-divider">其他页面</div>
+                <a href="#" class="nav-item" data-section="about">
+                    <span class="nav-icon">ℹ️</span>
+                    <span>关于我们</span>
+                </a>
+                <a href="#" class="nav-item" data-section="advisor">
+                    <span class="nav-icon">👨‍🏫</span>
+                    <span>指导老师</span>
+                </a>
+                <a href="#" class="nav-item" data-section="organization">
+                    <span class="nav-icon">🏛️</span>
+                    <span>组织架构</span>
+                </a>
+                <a href="#" class="nav-item" data-section="contact">
+                    <span class="nav-icon">📞</span>
+                    <span>联系方式</span>
+                </a>
+                <a href="#" class="nav-item" data-section="join">
+                    <span class="nav-icon">🚀</span>
+                    <span>招募信息</span>
+                </a>
+                <div class="nav-divider">系统设置</div>
+                <a href="#" class="nav-item" data-section="stats">
+                    <span class="nav-icon">📈</span>
+                    <span>星社统计</span>
+                </a>
+                <a href="#" class="nav-item" data-section="footer">
+                    <span class="nav-icon">📋</span>
+                    <span>页脚管理</span>
+                </a>
+                <a href="#" class="nav-item" data-section="details">
+                    <span class="nav-icon">📄</span>
+                    <span>详情页</span>
+                </a>
+                <a href="#" class="nav-item" data-section="files">
+                    <span class="nav-icon">📎</span>
+                    <span>文件管理</span>
+                </a>
+                <a href="#" class="nav-item" data-section="accounts">
+                    <span class="nav-icon">👤</span>
+                    <span>账号管理</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="../index.html" target="_blank" class="view-site-btn">
+                    <span>🌐</span> 预览网站
+                </a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 头部 -->
+            <header class="content-header">
+                <h1 id="pageTitle">仪表盘</h1>
+                <div class="header-actions">
+                    <span class="current-time" id="currentTime"></span>
+                </div>
+            </header>
+
+            <!-- 内容区域 -->
+            <div class="content-area">
+                <!-- 仪表盘 -->
+                <section id="dashboard" class="section active">
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">📰</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="newsCount">0</div>
+                                <div class="stat-label">首页动态</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="activitiesCount">0</div>
+                                <div class="stat-label">共创总数</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="membersCount">0</div>
+                                <div class="stat-label">成员总数</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📚</div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="resourcesCount">0</div>
+                                <div class="stat-label">学习资源</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 静态导出区域 -->
+                    <div class="info-card" style="margin-top: 20px; border: 2px solid var(--primary-color);">
+                        <h3 style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                            <span>📦</span> 静态网站导出
+                        </h3>
+                        <p style="color: var(--text-light); margin: 10px 0;">将动态数据导出为纯静态 HTML 文件，无需后端即可运行</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                            <button class="btn btn-primary" id="exportAllBtn" onclick="exportAllStatic()">
+                                <span>🚀</span> 一键导出全部页面
+                            </button>
+                            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadExportZip()">
+                                <span>📥</span> 下载 ZIP 包
+                            </button>
+                            <button class="btn btn-secondary" id="downloadGithubBtn" onclick="downloadGithubZip()">
+                                <span>📤</span> GitHub 发布
+                            </button>
+                        </div>
+                        <div id="exportStatus" style="margin-top: 15px; display: none;">
+                            <div class="loading-bar">
+                                <div class="loading-bar-fill" id="exportProgress" style="width: 0%;"></div>
+                            </div>
+                            <p id="exportMessage" style="margin-top: 8px; font-size: 13px;">准备导出...</p>
+                        </div>
+                        <div id="exportResult" style="margin-top: 15px; display: none;"></div>
+                    </div>
+
+                    <div class="dashboard-info">
+                        <div class="info-card">
+                            <h3>使用说明</h3>
+                            <ul>
+                                <li>使用左侧导航切换不同管理模块</li>
+                                <li>点击"添加"按钮可新增内容</li>
+                                <li>点击"编辑"按钮可修改现有内容</li>
+                                <li>点击"删除"按钮可删除内容</li>
+                                <li>修改后点击"保存更改"生效</li>
+                                <li><strong>修改数据后记得点击"导出"更新静态网站</strong></li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h3>最近更新</h3>
+                            <div id="recentUpdates">
+                                <p class="no-data">暂无更新记录</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 快速入口管理 -->
+                <section id="quickLinks" class="section">
+                    <div class="section-header">
+                        <h2>快速入口管理</h2>
+                        <button class="btn btn-primary" onclick="showAddModal('quickLinks')">+ 添加入口</button>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 12px; margin-bottom: 10px;">💡 提示：拖动排序列可调整显示顺序</p>
+                    <div class="data-table">
+                        <table id="quickLinksTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">排序</th>
+                                    <th style="text-align:center;">图标</th>
+                                    <th>标题</th>
+                                    <th>描述</th>
+                                    <th>链接</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quickLinksTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 核心共创管理 -->
+                <section id="coreActivities" class="section">
+                    <div class="section-header">
+                        <h2>核心共创管理</h2>
+                        <button class="btn btn-primary" onclick="showAddModal('coreActivities')">+ 添加共创</button>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 12px; margin-bottom: 10px;">💡 提示：拖动排序列可调整显示顺序</p>
+                    <div class="data-table">
+                        <table id="coreActivitiesTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">排序</th>
+                                    <th style="text-align:center;">图标</th>
+                                    <th>标题</th>
+                                    <th>描述</th>
+                                    <th>链接</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coreActivitiesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 共创回顾管理 -->
+                <section id="activities" class="section">
+                    <div class="section-header">
+                        <h2>共创回顾管理（最新动态）</h2>
+                        <button class="btn btn-primary" onclick="showAddModal('activities')">+ 添加共创</button>
+                    </div>
+                    <div class="data-table">
+                        <table id="activitiesTable">
+                            <thead>
+                                <tr>
+                                    <th>排序</th>
+                                    <th>日期</th>
+                                    <th>标题</th>
+                                    <th>描述</th>
+                                    <th>链接</th>
+                                    <th>显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activitiesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 成员风采 -->
+                <section id="members" class="section">
+                    <div class="section-header">
+                        <h2>核心成员管理</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="showBatchImportModal('members')">📥 批量导入</button>
+                            <button class="btn btn-primary" onclick="showAddModal('members')">+ 添加成员</button>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 12px; margin-bottom: 10px;">💡 提示：拖动排序列可调整显示顺序</p>
+                    <div class="data-table">
+                        <table id="membersTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">排序</th>
+                                    <th>姓名</th>
+                                    <th>加入年份</th>
+                                    <th>方向</th>
+                                    <th>简介</th>
+                                    <th>链接</th>
+                                    <th style="text-align:center;">显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="membersTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 星社成就子模块 -->
+                    <div class="section-header" style="margin-top: 50px;">
+                        <h2>星社成就管理</h2>
+                        <button class="btn btn-primary" onclick="showAddModal('achievements')">+ 添加成果</button>
+                    </div>
+                    <div class="data-table">
+                        <table id="achievementsTable">
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>奖项名称</th>
+                                    <th>简介</th>
+                                    <th>链接</th>
+                                    <th style="text-align:center;">显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="achievementsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 学习资源 -->
+                <section id="resources" class="section">
+                    <div class="section-header">
+                        <h2>学习资源管理</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="showBatchImportModal('resources')">📥 批量导入</button>
+                            <button class="btn btn-primary" onclick="showAddModal('resources')">+ 添加资源</button>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 12px; margin-bottom: 10px;">💡 提示：拖动排序列可调整同分类内资源顺序（不同分类独立排序）</p>
+                    <div class="data-table">
+                        <table id="resourcesTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">排序</th>
+                                    <th style="text-align:center;">图标</th>
+                                    <th>标题</th>
+                                    <th>描述</th>
+                                    <th style="text-align:center;">显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resourcesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 推荐书籍 -->
+                <section id="books" class="section">
+                    <div class="section-header">
+                        <h2>推荐书籍管理</h2>
+                        <button class="btn btn-primary" onclick="showAddModal('books')">+ 添加书籍</button>
+                    </div>
+                    <div class="data-table">
+                        <table id="booksTable">
+                            <thead>
+                                <tr>
+                                    <th>书名</th>
+                                    <th>作者</th>
+                                    <th>简介</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="booksTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 联系方式 -->
+                <section id="contact" class="section">
+                    <div class="section-header">
+                        <h2>联系方式管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="contactForm">
+                            <div class="form-group">
+                                <label for="contactQqGroup">官方联络渠道</label>
+                                <input type="text" id="contactQqGroup" name="contactQqGroup" placeholder="请输入官方渠道标识">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactWechat">微信公众号</label>
+                                <input type="text" id="contactWechat" name="contactWechat" placeholder="请输入微信公众号">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">邮箱地址</label>
+                                <input type="email" id="contactEmail" name="contactEmail" placeholder="请输入邮箱地址">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactLocation">办公地点</label>
+                                <textarea id="contactLocation" name="contactLocation" rows="2" placeholder="请输入办公地点"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactGithub">GitHub地址</label>
+                                <input type="url" id="contactGithub" name="contactGithub" placeholder="请输入GitHub地址">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 招募信息 -->
+                <section id="join" class="section">
+                    <div class="section-header">
+                        <h2>招募信息管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="joinForm">
+                            <div class="form-two-col">
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">基本信息</h3>
+                                    <div class="form-group">
+                                        <label for="joinQqGroup">官方联络渠道</label>
+                                        <input type="text" id="joinQqGroup" name="joinQqGroup" placeholder="请输入官方渠道标识">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="joinStatus">招募状态</label>
+                                        <select id="joinStatus" name="joinStatus">
+                                            <option value="open">开放报名</option>
+                                            <option value="closed">暂停报名</option>
+                                            <option value="pending">即将开始</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="joinNotice">招募公告</label>
+                                        <textarea id="joinNotice" name="joinNotice" rows="3" placeholder="请输入招募公告内容"></textarea>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                        <div class="form-group">
+                                            <label for="joinTime">招募时间</label>
+                                            <input type="text" id="joinTime" name="joinTime" placeholder="如：2026年加入">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="joinLocation">招募地点</label>
+                                            <input type="text" id="joinLocation" name="joinLocation" placeholder="请输入招募地点">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="joinLink">报名链接</label>
+                                        <input type="url" id="joinLink" name="joinLink" placeholder="请输入报名链接">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">要求与收益</h3>
+                                    <div class="form-group">
+                                        <label>加入要求（每行一条）</label>
+                                        <textarea id="joinRequirements" name="joinRequirements" rows="5" placeholder="每行一条要求，如：&#10;对智慧社团建设或数字化创新有浓厚兴趣&#10;愿意投入时间和精力参与星社共创"></textarea>
+                                        <small style="color: #888; font-size: 11px;">每行代表一条要求</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>你将获得（每行一条）</label>
+                                        <textarea id="joinBenefits" name="joinBenefits" rows="5" placeholder="每行一条收益，如：&#10;系统化的智慧社团平台学习机会&#10;参与各类创新竞赛的培训和指导"></textarea>
+                                        <small style="color: #888; font-size: 11px;">每行代表一条收益</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>常见问题 Q&A</label>
+                                <div id="faqContainer" class="faq-container">
+                                    <!-- 动态生成的FAQ列表 -->
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="addFaqItem()">+ 添加问题</button>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 星社统计 -->
+                <section id="stats" class="section">
+                    <div class="section-header">
+                        <h2>星社统计管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="statsForm">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                                <div class="stat-form-group">
+                                    <h4>📊 统计项一</h4>
+                                    <div class="form-group" style="margin-bottom:12px;">
+                                        <label for="foundedYearLabel">标题</label>
+                                        <input type="text" id="foundedYearLabel" name="foundedYearLabel" placeholder="如：成立年份">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label for="foundedYear">数值</label>
+                                        <input type="text" id="foundedYear" name="foundedYear" placeholder="如：2025">
+                                    </div>
+                                </div>
+                                <div class="stat-form-group">
+                                    <h4>👥 统计项二</h4>
+                                    <div class="form-group" style="margin-bottom:12px;">
+                                        <label for="memberCountLabel">标题</label>
+                                        <input type="text" id="memberCountLabel" name="memberCountLabel" placeholder="如：成员总数">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label for="memberCount">数值</label>
+                                        <input type="text" id="memberCount" name="memberCount" placeholder="如：50+">
+                                    </div>
+                                </div>
+                                <div class="stat-form-group">
+                                    <h4>📅 统计项三</h4>
+                                    <div class="form-group" style="margin-bottom:12px;">
+                                        <label for="activityCountLabel">标题</label>
+                                        <input type="text" id="activityCountLabel" name="activityCountLabel" placeholder="如：共创项目">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label for="activityCount">数值</label>
+                                        <input type="text" id="activityCount" name="activityCount" placeholder="如：10+">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 首页横幅 -->
+                <section id="hero" class="section">
+                    <div class="section-header">
+                        <h2>首页横幅管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="heroForm">
+                            <div class="form-two-col">
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">横幅内容</h3>
+                                    <div class="form-group">
+                                        <label for="heroTitle">主标题</label>
+                                        <input type="text" id="heroTitle" name="heroTitle" placeholder="如：星社">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="heroSubtitle">副标题</label>
+                                        <input type="text" id="heroSubtitle" name="heroSubtitle" placeholder="如：探索智慧社团新范式 · 培养数字化创新人才">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="heroDesc">描述文字</label>
+                                        <input type="text" id="heroDesc" name="heroDesc" placeholder="如：智慧社团平台 | 星社共创空间">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">按钮设置</h3>
+                                    <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                        <div>
+                                            <label for="heroBtn1Text">按钮1文字</label>
+                                            <input type="text" id="heroBtn1Text" name="heroBtn1Text" placeholder="如：加入星社">
+                                        </div>
+                                        <div>
+                                            <label for="heroBtn1Link">按钮1链接</label>
+                                            <input type="text" id="heroBtn1Link" name="heroBtn1Link" placeholder="如：join.html">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                        <div>
+                                            <label for="heroBtn2Text">按钮2文字</label>
+                                            <input type="text" id="heroBtn2Text" name="heroBtn2Text" placeholder="如：了解更多">
+                                        </div>
+                                        <div>
+                                            <label for="heroBtn2Link">按钮2链接</label>
+                                            <input type="text" id="heroBtn2Link" name="heroBtn2Link" placeholder="如：about.html">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3 style="margin: 30px 0 15px;">核心共创</h3>
+                            <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr 1fr; gap: 10px; align-items: end;">
+                                <div>
+                                    <label for="activityIcon1">图标</label>
+                                    <div class="emoji-picker-wrapper">
+                                        <input type="text" id="activityIcon1" name="activityIcon1" placeholder="🔐" class="emoji-input" data-target="emoji-picker-1">
+                                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-1')">😊</button>
+                                        <div id="emoji-picker-1" class="emoji-picker-dropdown"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="activityTitle1">标题</label>
+                                    <input type="text" id="activityTitle1" name="activityTitle1" placeholder="智慧创新竞赛">
+                                </div>
+                                <div>
+                                    <label for="activityDesc1">描述</label>
+                                    <input type="text" id="activityDesc1" name="activityDesc1" placeholder="定期举办智慧创新方向竞赛">
+                                </div>
+                                <div>
+                                    <label for="activityLink1">链接</label>
+                                    <input type="text" id="activityLink1" name="activityLink1" placeholder="可选，如 activities.html">
+                                </div>
+                            </div>
+                            <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr 1fr; gap: 10px; align-items: end;">
+                                <div>
+                                    <label for="activityIcon2">图标</label>
+                                    <div class="emoji-picker-wrapper">
+                                        <input type="text" id="activityIcon2" name="activityIcon2" placeholder="📚" class="emoji-input" data-target="emoji-picker-2">
+                                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-2')">😊</button>
+                                        <div id="emoji-picker-2" class="emoji-picker-dropdown"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="activityTitle2">标题</label>
+                                    <input type="text" id="activityTitle2" name="activityTitle2" placeholder="技术培训">
+                                </div>
+                                <div>
+                                    <label for="activityDesc2">描述</label>
+                                    <input type="text" id="activityDesc2" name="activityDesc2" placeholder="系统学习智慧社团理论知识">
+                                </div>
+                                <div>
+                                    <label for="activityLink2">链接</label>
+                                    <input type="text" id="activityLink2" name="activityLink2" placeholder="可选，如 activities.html">
+                                </div>
+                            </div>
+                            <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr 1fr; gap: 10px; align-items: end;">
+                                <div>
+                                    <label for="activityIcon3">图标</label>
+                                    <div class="emoji-picker-wrapper">
+                                        <input type="text" id="activityIcon3" name="activityIcon3" placeholder="🎮" class="emoji-input" data-target="emoji-picker-3">
+                                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-3')">😊</button>
+                                        <div id="emoji-picker-3" class="emoji-picker-dropdown"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="activityTitle3">标题</label>
+                                    <input type="text" id="activityTitle3" name="activityTitle3" placeholder="智慧创意挑战">
+                                </div>
+                                <div>
+                                    <label for="activityDesc3">描述</label>
+                                    <input type="text" id="activityDesc3" name="activityDesc3" placeholder="趣味智慧创意题目挑战">
+                                </div>
+                                <div>
+                                    <label for="activityLink3">链接</label>
+                                    <input type="text" id="activityLink3" name="activityLink3" placeholder="可选，如 activities.html">
+                                </div>
+                            </div>
+                            <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr 1fr; gap: 10px; align-items: end;">
+                                <div>
+                                    <label for="activityIcon4">图标</label>
+                                    <div class="emoji-picker-wrapper">
+                                        <input type="text" id="activityIcon4" name="activityIcon4" placeholder="🤝" class="emoji-input" data-target="emoji-picker-4">
+                                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-4')">😊</button>
+                                        <div id="emoji-picker-4" class="emoji-picker-dropdown"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="activityTitle4">标题</label>
+                                    <input type="text" id="activityTitle4" name="activityTitle4" placeholder="技术交流">
+                                </div>
+                                <div>
+                                    <label for="activityDesc4">描述</label>
+                                    <input type="text" id="activityDesc4" name="activityDesc4" placeholder="与外部安全团队交流合作">
+                                </div>
+                                <div>
+                                    <label for="activityLink4">链接</label>
+                                    <input type="text" id="activityLink4" name="activityLink4" placeholder="可选，如 activities.html">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 详情页管理 -->
+                <section id="details" class="section">
+                    <div class="section-header">
+                        <h2>详情页管理</h2>
+                        <button class="btn btn-primary" onclick="showDetailPageEditor()">+ 新建详情页</button>
+                    </div>
+                    <p style="color: var(--text-light); margin-bottom: 20px; font-size: 13px;">
+                        详情页可以快速生成自定义页面，支持标题、卡片、图片、视频、内嵌HTML和Markdown等内容板块。生成后可通过链接访问。
+                    </p>
+                    <div id="detailsList">
+                        <!-- 动态生成的详情页列表 -->
+                    </div>
+                </section>
+
+                <!-- 文件管理 -->
+                <section id="files" class="section">
+                    <div class="section-header">
+                        <h2>文件上传管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <div class="form-two-col">
+                            <div class="form-col">
+                                <h3 style="margin-bottom: 15px;">上传文件</h3>
+                                <div class="upload-row" style="flex-direction:column;">
+                                    <select id="uploadCategory" class="upload-category-select" style="width:100%;">
+                                        <option value="images">📷 图片</option>
+                                        <option value="avatars">👤 头像</option>
+                                        <option value="documents">📄 文档</option>
+                                        <option value="videos">🎬 视频</option>
+                                        <option value="audios">🎵 音频</option>
+                                        <option value="other">📦 其他</option>
+                                    </select>
+                                    <div class="upload-zone" id="uploadZone">
+                                        <div class="upload-zone-icon">📁</div>
+                                        <div class="upload-zone-text">拖拽文件到此处，或点击选择文件</div>
+                                        <div class="upload-zone-hint">支持 jpg, png, gif, pdf 等</div>
+                                        <input type="file" id="fileInput" multiple style="display: none;">
+                                    </div>
+                                </div>
+                                <div style="margin-top: 16px;">
+                                    <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-dark);">文件使用说明</h4>
+                                    <ul style="list-style: none; font-size: 13px; color: var(--text-light); line-height: 2;">
+                                        <li>📎 上传文件保存在 <code>uploads/</code> 目录</li>
+                                        <li>🔗 链接格式：<code>uploads/分类/文件名</code></li>
+                                        <li>🖼️ 图片可在成员照片等内容中引用</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <h3 style="margin-bottom: 15px;">已上传文件</h3>
+                                <div class="file-category-tabs">
+                                    <button class="category-tab active" data-category="all">全部</button>
+                                    <button class="category-tab" data-category="images">📷 图片</button>
+                                    <button class="category-tab" data-category="avatars">👤 头像</button>
+                                    <button class="category-tab" data-category="documents">📄 文档</button>
+                                    <button class="category-tab" data-category="videos">🎬 视频</button>
+                                    <button class="category-tab" data-category="audios">🎵 音频</button>
+                                    <button class="category-tab" data-category="other">📦 其他</button>
+                                </div>
+                                <div class="file-list-header">
+                                    <span>文件名</span>
+                                    <span>分类</span>
+                                    <span>大小</span>
+                                    <span>操作</span>
+                                </div>
+                                <div class="file-list" id="fileList">
+                                    <div class="file-list-loading">加载中...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 页脚管理 -->
+                <section id="footer" class="section">
+                    <div class="section-header">
+                        <h2>页脚管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="footerForm">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
+                                <div class="footer-col-card">
+                                    <h4>📋 第一列</h4>
+                                    <div class="form-group" style="margin-bottom:12px;">
+                                        <label for="column1Title">列标题</label>
+                                        <input type="text" id="column1Title" name="column1Title" placeholder="如：关于星社">
+                                    </div>
+                                    <div id="column1Items" class="footer-items-container"></div>
+                                    <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="addFooterItem('column1')">+ 添加链接</button>
+                                </div>
+                                <div class="footer-col-card">
+                                    <h4>🔗 第二列</h4>
+                                    <div class="form-group" style="margin-bottom:12px;">
+                                        <label for="column2Title">列标题</label>
+                                        <input type="text" id="column2Title" name="column2Title" placeholder="如：快速链接">
+                                    </div>
+                                    <div id="column2Items" class="footer-items-container"></div>
+                                    <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="addFooterItem('column2')">+ 添加链接</button>
+                                </div>
+                                <div class="footer-col-card">
+                                    <h4>📞 第三列</h4>
+                                    <div class="form-group" style="margin-bottom:12px;">
+                                        <label for="column3Title">列标题</label>
+                                        <input type="text" id="column3Title" name="column3Title" placeholder="如：联系我们">
+                                    </div>
+                                    <div id="column3Items" class="footer-items-container"></div>
+                                    <button type="button" class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="addFooterItem('column3')">+ 添加链接</button>
+                                </div>
+                            </div>
+                            <h3 style="margin-bottom: 15px;">基础信息</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                                <div class="form-group">
+                                    <label for="footerCopyright">版权年份</label>
+                                    <input type="text" id="footerCopyright" name="footerCopyright" placeholder="如：2026">
+                                </div>
+                                <div class="form-group">
+                                    <label for="footerIcp">ICP备案号</label>
+                                    <input type="text" id="footerIcp" name="footerIcp" placeholder="如：桂ICP备XXXXXXXX号">
+                                </div>
+                                <div class="form-group">
+                                    <label for="footerGithub">GitHub地址</label>
+                                    <input type="url" id="footerGithub" name="footerGithub" placeholder="如：https://github.com/AnyaWantsStars/StarClub">
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 关于我们管理 -->
+                <section id="about" class="section">
+                    <div class="section-header">
+                        <h2>关于我们管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="aboutForm">
+                            <div class="form-two-col">
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">基本信息</h3>
+                                    <div class="form-group">
+                                        <label for="aboutTitle">页面标题</label>
+                                        <input type="text" id="aboutTitle" name="aboutTitle" placeholder="如：关于我们">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="aboutSubtitle">副标题</label>
+                                        <input type="text" id="aboutSubtitle" name="aboutSubtitle" placeholder="如：星社，简称StarClub">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="aboutContent">星社简介内容</label>
+                                        <textarea id="aboutContent" name="aboutContent" rows="6" placeholder="请输入星社简介内容"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">星社宗旨（三个卡片）</h3>
+                                    <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr; gap: 10px; align-items: end;">
+                                        <div>
+                                            <label for="valueIcon1">图标</label>
+                                            <div class="emoji-picker-wrapper">
+                                                <input type="text" id="valueIcon1" name="valueIcon1" placeholder="🎯" class="emoji-input" data-target="emoji-picker-5">
+                                                <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-5')">😊</button>
+                                                <div id="emoji-picker-5" class="emoji-picker-dropdown"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label for="valueTitle1">标题</label>
+                                            <input type="text" id="valueTitle1" name="valueTitle1" placeholder="学术为本">
+                                        </div>
+                                        <div>
+                                            <label for="valueDesc1">描述</label>
+                                            <input type="text" id="valueDesc1" name="valueDesc1" placeholder="以学术研究为核心">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr; gap: 10px; align-items: end;">
+                                        <div>
+                                            <label for="valueIcon2">图标</label>
+                                            <div class="emoji-picker-wrapper">
+                                                <input type="text" id="valueIcon2" name="valueIcon2" placeholder="🤝" class="emoji-input" data-target="emoji-picker-6">
+                                                <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-6')">😊</button>
+                                                <div id="emoji-picker-6" class="emoji-picker-dropdown"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label for="valueTitle2">标题</label>
+                                            <input type="text" id="valueTitle2" name="valueTitle2" placeholder="开放协作">
+                                        </div>
+                                        <div>
+                                            <label for="valueDesc2">描述</label>
+                                            <input type="text" id="valueDesc2" name="valueDesc2" placeholder="倡导开放共享">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="display: grid; grid-template-columns: 70px 1fr 2fr; gap: 10px; align-items: end;">
+                                        <div>
+                                            <label for="valueIcon3">图标</label>
+                                            <div class="emoji-picker-wrapper">
+                                                <input type="text" id="valueIcon3" name="valueIcon3" placeholder="🚀" class="emoji-input" data-target="emoji-picker-7">
+                                                <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-7')">😊</button>
+                                                <div id="emoji-picker-7" class="emoji-picker-dropdown"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label for="valueTitle3">标题</label>
+                                            <input type="text" id="valueTitle3" name="valueTitle3" placeholder="持续成长">
+                                        </div>
+                                        <div>
+                                            <label for="valueDesc3">描述</label>
+                                            <input type="text" id="valueDesc3" name="valueDesc3" placeholder="与成员共同成长">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 指导老师管理 -->
+                <section id="advisor" class="section">
+                    <div class="section-header">
+                        <h2>指导老师管理</h2>
+                    </div>
+                    <div class="form-card">
+                        <form id="advisorForm">
+                            <div class="form-two-col">
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">基本信息</h3>
+                                    <div class="form-group">
+                                        <label for="advisorName">姓名</label>
+                                        <input type="text" id="advisorName" name="advisorName" placeholder="请输入指导老师姓名">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="advisorTitle">职位/头衔</label>
+                                        <input type="text" id="advisorTitle" name="advisorTitle" placeholder="如：指导老师">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="advisorTitleFull">完整职称</label>
+                                        <input type="text" id="advisorTitleFull" name="advisorTitleFull" placeholder="如：指导老师">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="advisorPhoto">照片路径</label>
+                                        <input type="text" id="advisorPhoto" name="advisorPhoto" placeholder="如：uploads/images/llc.jpeg">
+                                        <small style="color: #888; font-size: 11px;">照片文件请上传到 uploads/images 目录</small>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <h3 style="margin-bottom: 15px;">个人简介与研究方向</h3>
+                                    <div class="form-group">
+                                        <label for="advisorBio">个人简介</label>
+                                        <textarea id="advisorBio" name="advisorBio" rows="5" placeholder="请输入个人简介"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="advisorLink">个人主页链接</label>
+                                        <input type="url" id="advisorLink" name="advisorLink" placeholder="如：https://www.example.com/teacher/xxx">
+                                        <small style="color: #888; font-size: 11px;">留空则卡片不可点击，支持内部路径或外部链接</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>研究方向（每行一条）</label>
+                                        <textarea id="advisorResearchAreas" name="advisorResearchAreas" rows="4" placeholder="每行一个研究方向，如：&#10;智慧社团平台架构&#10;数字化创新服务&#10;社团智能应用"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存更改</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 组织架构管理 -->
+                <section id="organization" class="section">
+                    <div class="section-header">
+                        <h2>组织架构管理</h2>
+                        <button class="btn btn-primary" onclick="showAddModal('organization')">+ 添加部门</button>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 12px; margin-bottom: 10px;">💡 提示：拖动排序列可调整显示顺序</p>
+                    <div class="intro-edit-panel">
+                        <label>组织架构介绍</label>
+                        <textarea id="orgIntroInput" rows="3" placeholder="请输入组织架构介绍文字"></textarea>
+                        <button class="btn btn-small btn-save" onclick="saveOrgIntro()">保存介绍</button>
+                    </div>
+                    <div class="data-table">
+                        <table id="organizationTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">排序</th>
+                                    <th style="text-align:center;">图标</th>
+                                    <th>部门名称</th>
+                                    <th>描述</th>
+                                    <th style="width:80px;">显示</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="organizationTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 账号管理 -->
+                <section id="accounts" class="section">
+                    <div class="section-header">
+                        <h2>账号管理</h2>
+                        <button class="btn btn-primary" onclick="showAddAccountModal()">+ 添加账号</button>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 12px; margin-bottom: 10px;">💡 提示：只有白名单中的账号才能访问管理后台</p>
+                    <div class="data-table">
+                        <table id="accountsTable">
+                            <thead>
+                                <tr>
+                                    <th>用户ID</th>
+                                    <th>类型</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="margin-bottom: 10px;">🔍 搜索 Nextcloud 用户</h4>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <input type="text" id="searchNextcloudInput" placeholder="输入用户名搜索..." style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;">
+                            <button class="btn btn-secondary" onclick="searchNextcloudUsers()">搜索</button>
+                        </div>
+                        <div id="searchResults" style="display: none;">
+                            <h5 style="margin-bottom: 10px;">搜索结果：</h5>
+                            <div id="searchResultsList"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 底部操作栏 -->
+            <div class="bottom-actions">
+                <div class="changed-files">
+                    <h4>数据存储</h4>
+                    <p style="color: var(--text-light); font-size: 12px;">所有数据直接保存到 data/site-data.json</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmModal()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量导入模态框 -->
+    <div id="batchImportModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="batchImportTitle">批量导入</h3>
+                <button class="modal-close" onclick="closeBatchImportModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="batchImportBody">
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 10px;">📋 CSV 模板</h4>
+                    <p style="color: var(--text-light); font-size: 13px; margin-bottom: 10px;">请先下载 CSV 模板，按格式填写后上传</p>
+                    <button class="btn btn-secondary" id="downloadTemplateBtn" onclick="downloadImportTemplate()">
+                        ⬇️ 下载模板文件
+                    </button>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 10px;">📤 上传 CSV 文件</h4>
+                    <input type="file" id="batchImportFile" accept=".csv" style="display: none;" onchange="handleBatchImportFile(event)">
+                    <button class="btn btn-secondary" onclick="document.getElementById('batchImportFile').click()">
+                        📂 选择 CSV 文件
+                    </button>
+                    <span id="batchImportFileName" style="margin-left: 10px; color: var(--text-light);"></span>
+                </div>
+                <div id="batchImportPreview" style="display: none;">
+                    <h4 style="margin-bottom: 10px;">📄 预览（共 <span id="batchImportCount">0</span> 条数据）</h4>
+                    <div id="batchImportPreviewContent" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBatchImportModal()">取消</button>
+                <button class="btn btn-primary" id="batchImportConfirmBtn" onclick="confirmBatchImport()" disabled>导入数据</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>更改预览</h3>
+                <button class="modal-close" onclick="closePreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="previewBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePreviewModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 自定义确认弹窗 -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-box">
+            <h3 id="confirmTitle">确认操作</h3>
+            <p id="confirmMessage">确定要执行此操作吗？</p>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button class="btn btn-primary" id="confirmBtn" onclick="confirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情页编辑器模态框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content modal-large" style="width:960px;max-width:95%;">
+            <div class="modal-header">
+                <h3 id="detailModalTitle">新建详情页</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height:75vh;">
+                <!-- 基本信息区 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="dpTitle">页面标题 <span style="color:red">*</span></label>
+                        <input type="text" id="dpTitle" placeholder="如：智慧社团入门教程" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="dpSubtitle">页面副标题</label>
+                        <input type="text" id="dpSubtitle" placeholder="如：从零开始的智慧社团学习之路">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="dpFilename">生成文件名</label>
+                        <input type="text" id="dpFilename" placeholder="如：star-guide.html（留空自动生成）">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="dpIcon">页面图标</label>
+                        <div class="emoji-picker-wrapper">
+                            <input type="text" id="dpIcon" placeholder="如：🚀" class="emoji-input" data-target="emoji-picker-dp">
+                            <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-dp')">😊</button>
+                            <div id="emoji-picker-dp" class="emoji-picker-dropdown"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 板块编辑区 -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h4 style="margin:0;">页面板块</h4>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('heading')">+ 标题</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('text')">+ 富文本</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('cards')">+ 卡片组</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('image')">+ 图片</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('video')">+ 视频</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('audio')">+ 音频</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('html')">+ HTML</button>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="dpAddSection('markdown')">+ Markdown</button>
+                    </div>
+                </div>
+                <div id="dpSectionsContainer">
+                    <!-- 动态生成的板块列表 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDetailModal()">取消</button>
+                <button class="btn btn-primary" onclick="dpSavePage()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分类管理模态框（保留但暂不使用） -->
+    <div id="categoryModal" class="modal" style="display:none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">添加分类</h3>
+                <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="categoryName">分类名称</label>
+                    <input type="text" id="categoryName" placeholder="如：入门指南" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryIcon">图标</label>
+                    <div class="emoji-picker-wrapper">
+                        <input type="text" id="categoryIcon" placeholder="如：📚、🔐、🏆" class="emoji-input" data-target="emoji-picker-category">
+                        <button type="button" class="emoji-picker-trigger" onclick="toggleEmojiPicker('emoji-picker-category')">😊</button>
+                        <div id="emoji-picker-category" class="emoji-picker-dropdown"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="categoryOrder">排序权重</label>
+                    <input type="number" id="categoryOrder" value="1" min="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCategory()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件重命名模态框 -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content" style="width:480px;max-width:90%;">
+            <div class="modal-header">
+                <h3>重命名文件</h3>
+                <button class="modal-close" onclick="closeRenameModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>当前文件名</label>
+                    <input type="text" id="renameOldName" disabled style="background:#f5f5f5;">
+                </div>
+                <div class="form-group">
+                    <label for="renameNewName">新文件名</label>
+                    <div style="display:flex;gap:8px;">
+                        <input type="text" id="renameNewName" placeholder="输入新文件名" style="flex:1;">
+                        <button type="button" class="btn btn-secondary" onclick="fillRandomName()" title="生成随机文件名" style="white-space:nowrap;">🎲 随机命名</button>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:var(--text-light);margin-top:8px;">
+                    提示：如未输入扩展名，将保留原扩展名。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRenameModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmRename()">确认重命名</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SortableJS 拖拽排序库 -->
+    <script src="Sortable.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

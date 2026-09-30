@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入星社 - 星社智慧社团平台</title>
+    <link rel="icon" href="static/starclub.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="static/starclub-title.png" alt="StarClub Logo">
+                </a>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="about.html">关于我们</a></li>
+                    <li><a href="activities.html">星社动态</a></li>
+                    <li><a href="resources.html">学习资源</a></li>
+                    <li><a href="members.html">成员风采</a></li>
+                    <li><a href="join.html" class="active">加入星社</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 页面头部 -->
+        <section class="page-header">
+            <div class="container">
+                <h1 class="page-title">加入星社</h1>
+                <p class="page-subtitle">成为星社的一员，一起探索智慧社团新范式</p>
+            </div>
+        </section>
+
+        <!-- 招募公告 -->
+        <section class="content-section section-white">
+            <div class="container">
+                <div class="join-info" id="joinInfo">
+                    <div class="join-notice-banner join-notice-pending">
+                        <div class="join-notice-icon">🔔</div>
+                        <div class="join-notice-content">
+                            <h3>招募即将开始</h3>
+                            <p>请耐心等待，招募通道即将开启...</p>
+                        </div>
+                    </div>
+
+                    <div class="join-section">
+                        <h3>招募公告</h3>
+                        <p>2026年星社开放招募即将开始！我们欢迎所有对智慧社团建设、数字化创新感兴趣的伙伴加入！无论你是零基础的新手，还是已有一定经验的高手，都能在这里找到属于自己的位置！详情关注官方招募渠道</p>
+                        <p><strong>招募时间：</strong>2026年开放招募</p>
+                        <p><strong>招募地点：</strong>暂未确定</p>
+                    </div>
+
+                    <div class="join-section">
+                        <h3>加入要求</h3>
+                        <ul class="requirement-list">
+                                <li>对智慧社团建设或数字化创新有浓厚兴趣</li>
+                                <li>愿意投入时间和精力参与星社共创</li>
+                                <li>具备基本的计算机操作能力</li>
+                                <li>遵守星社章程，积极配合星社工作</li>
+                                <li>有团队协作精神，乐于分享交流</li>
+                        </ul>
+                    </div>
+
+                    <div class="join-section">
+                        <h3>你将获得</h3>
+                        <ul class="requirement-list">
+                                <li>系统化的智慧社团平台学习机会</li>
+                                <li>参与各类创新实践的培训和指导</li>
+                                <li>与优秀前辈交流学习的机会</li>
+                                <li>丰富的共创实践与实战经验</li>
+                                <li>结识志同道合的伙伴</li>
+                                <li>提升个人能力和履历的机会</li>
+                        </ul>
+                    </div>
+
+                    <div class="join-section join-faq">
+                        <h3>常见问题</h3>
+                        <div class="faq-list">
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFaq(0)">
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q-text">零基础可以加入吗？</span>
+                                    <span class="faq-toggle" id="faq-toggle-0">▼</span>
+                                </div>
+                                <div class="faq-answer" id="faq-answer-0" style="display: none;">
+                                    当然可以！我们有系统的培训体系，从数字化基础到创新实践，循序渐进。很多优秀成员都是从零开始学习的呢
+                                </div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFaq(1)">
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q-text">加入星社需要缴纳费用吗？</span>
+                                    <span class="faq-toggle" id="faq-toggle-1">▼</span>
+                                </div>
+                                <div class="faq-answer" id="faq-answer-1" style="display: none;">
+                                    不需要。星社是开放自治的智慧社团，不收取任何费用。
+                                </div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFaq(2)">
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q-text">星社平时有什么共创安排？</span>
+                                    <span class="faq-toggle" id="faq-toggle-2">▼</span>
+                                </div>
+                                <div class="faq-answer" id="faq-answer-2" style="display: none;">
+                                    我们定期组织学习交流会、技术培训、创意挑战赛、创新实践等共创沙龙，并有指导老师支持开展各类开放共创与交流活动。
+                                </div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFaq(3)">
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q-text">如何报名参加招募？</span>
+                                    <span class="faq-toggle" id="faq-toggle-3">▼</span>
+                                </div>
+                                <div class="faq-answer" id="faq-answer-3" style="display: none;">
+                                    大家注意关注招募期间的官方招募渠道信息，之后会发布招募信息，填写在线报名表，通过申请与筛选即可加入。
+                                </div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question" onclick="toggleFaq(4)">
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q-text">星社对专业有要求吗？</span>
+                                    <span class="faq-toggle" id="faq-toggle-4">▼</span>
+                                </div>
+                                <div class="faq-answer" id="faq-answer-4" style="display: none;">
+                                    没有专业限制。只要你对智慧社团建设或数字化创新感兴趣，我们都欢迎！来自不同背景的伙伴都很适合呢。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 报名方式 -->
+        <section class="content-section section-gray">
+            <div class="container">
+                <h2 class="section-title">报名方式</h2>
+                    <p style="text-align: center; color: #888; padding: 20px;">报名暂未开启，请关注后续通知</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul class="footer-links" id="footerCol1Links">
+                            <li><a href="https://space.starclub.example.com">星社共创空间</a></li>
+                            <li><a href="https://lab.starclub.example.com">星社数字工坊</a></li>
+                            <li><a href="https://community.starclub.example.com">星社灵感广场</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>关于星社</h4>
+                    <ul class="footer-links" id="footerCol2Links">
+                            <li><a href="about.html">星社介绍</a></li>
+                            <li><a href="join.html">加入星社</a></li>
+                            <li><a href="activities.html">共创回顾</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系我们</h4>
+                    <ul class="footer-links" id="footerCol3Links">
+                            <li><a href="contact.html">联系方式</a></li>
+                        <li><a href="https://github.com/AnyaWantsStars/StarClub" class="footer-github" target="_blank">
+                            <svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;"><path fill="currentColor" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p id="footerCopyright">&copy; 2025-2026 星社. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // FAQ 切换函数
+        function toggleFaq(index) {
+            const answer = document.getElementById(`faq-answer-${index}`);
+            const toggle = document.getElementById(`faq-toggle-${index}`);
+            if (answer && toggle) {
+                const isVisible = answer.style.display !== 'none';
+                answer.style.display = isVisible ? 'none' : 'block';
+                toggle.textContent = isVisible ? '▼' : '▲';
+            }
+        }
+    </script>
+</body>
+</html>

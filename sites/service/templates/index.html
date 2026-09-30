@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarClub | 服务平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/starclub.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="/static/starclub-white.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+                    <h1 class="site-title">StarClub | 服务平台</h1>
+                </div>
+                <div class="user-section">
+                    {% if user %}
+                    <span class="user-info">
+                        <span class="user-name">{{ user.get('display_name', user.username) }}</span>
+                        <span class="user-type">({{ user_types.get(user.user_type, user.user_type) }})</span>
+                    </span>
+                    {% if user.user_type in ['service_manager', 'user_manager', 'platform_manager', 'super_admin'] %}
+                    <a href="/admin" class="header-btn">管理后台</a>
+                    {% endif %}
+                    <a href="/logout" class="header-btn">退出</a>
+                    {% else %}
+                    <a href="/login" class="header-btn">登录</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <div class="page-with-nav">
+            <aside class="left-nav">
+                <div class="nav-search">
+                    <input type="text" id="searchInput" placeholder="搜索..." oninput="filterContent()">
+                </div>
+                <nav class="nav-list" id="sidebarNav">
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <div class="content-header">
+                    <h2 id="currentModuleTitle">全部服务</h2>
+                </div>
+                <div class="services-grid" id="servicesGrid">
+                </div>
+            </main>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2025-<span id="currentYear"></span> 星社. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        const currentUser = {{ user | tojson | safe }};
+        let allModules = [];
+        let allServices = [];
+        let unmoduleServices = [];
+
+        async function loadServices() {
+            try {
+                const res = await fetch('/api/services');
+                const result = await res.json();
+                if (result.success) {
+                    allModules = result.modules || [];
+                    allServices = result.services || [];
+                    unmoduleServices = result.unmodule_services || [];
+                    renderSidebar();
+                    renderAllServices();
+                }
+            } catch (e) {
+                showToast('加载服务失败', 'error');
+            }
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('sidebarNav');
+            let html = '';
+
+            html += `<div class="nav-item active" data-module="" onclick="showModule('')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">全部服务</span>
+            </div>`;
+
+            allModules.forEach(module => {
+                const serviceCount = module.services ? module.services.length : 0;
+                html += `<div class="nav-item" data-module="${module.id}" onclick="showModule('${module.id}')">
+                    <span class="nav-icon">${escapeHtml(module.icon || '📁')}</span>
+                    <span class="nav-text">${escapeHtml(module.name)}</span>
+                    <span class="nav-badge">${serviceCount}</span>
+                </div>`;
+            });
+
+            nav.innerHTML = html;
+        }
+
+        function showModule(moduleId) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.module === moduleId) {
+                    item.classList.add('active');
+                }
+            });
+
+            const titleEl = document.getElementById('currentModuleTitle');
+
+            if (!moduleId) {
+                titleEl.textContent = '全部服务';
+                renderAllServices();
+            } else {
+                const module = allModules.find(m => m.id === moduleId);
+                titleEl.textContent = module ? module.name : '全部服务';
+                renderServices(module ? module.services : []);
+            }
+        }
+
+        function renderAllServices() {
+            const grid = document.getElementById('servicesGrid');
+            const services = [...allServices];
+            if (services.length === 0) {
+                grid.innerHTML = '<div class="empty-state">暂无服务</div>';
+                return;
+            }
+            renderServices(services);
+        }
+
+        function renderServices(services) {
+            const grid = document.getElementById('servicesGrid');
+            if (services.length === 0) {
+                grid.innerHTML = '<div class="empty-state">该模块暂无服务</div>';
+                return;
+            }
+            grid.innerHTML = services.map(service => {
+                const embed = service.embed !== false && service.embed_path;
+                const href = embed ? `/service/${encodeURIComponent(service.embed_path)}` : escapeHtml(service.url);
+                const target = embed ? '_self' : '_blank';
+                return `<a href="${href}" class="service-card" target="${target}" rel="noopener noreferrer" title="${escapeHtml(service.description || '')}">
+                    <div class="service-icon">${escapeHtml(service.icon || '🔗')}</div>
+                    <div class="service-name">${escapeHtml(service.name)}</div>
+                    <div class="service-desc">${escapeHtml(service.description || '')}</div>
+                </a>
+            `}).join('');
+        }
+
+        function filterContent() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const text = item.querySelector('.nav-text').textContent.toLowerCase();
+                const matches = !query || text.includes(query);
+                item.style.display = matches ? '' : 'none';
+            });
+
+            if (query) {
+                document.getElementById('currentModuleTitle').textContent = '搜索结果';
+                const results = allServices.filter(s =>
+                    s.name.toLowerCase().includes(query) ||
+                    (s.description && s.description.toLowerCase().includes(query))
+                );
+                renderServices(results);
+            } else {
+                showModule('');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast toast-' + type;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        loadServices();
+    </script>
+</body>
+</html>
